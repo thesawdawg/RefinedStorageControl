@@ -1,0 +1,7 @@
+# Build output and local IDE state
+**/bin/
+**/obj/
+/Artifacts/
+/.vs/
+*.user
+*.suo
