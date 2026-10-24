@@ -84,7 +84,7 @@ P0 investigates crafting and claim activity early to expose architectural constr
 
 - [x] Before P1: resolve network conflicts, routing defaults/filter direction, transfer accounting, and initial input support. **F02/F03/F11/F12** *(decided October 23, 2026; F12 performance budgets stay with the P4 benchmark)*
 - [x] Before P2: resolve balance values, media movement/ownership, cabinet pickup, and survival rules. **F01/F04** *(decided October 23, 2026)*
-- [ ] During P0 and before P3: resolve claim bounds/removal; crafting stats/XP, station selection, and pending countdown behavior. **F05/F06/F07/F10**
+- [x] During P0 and before P3: resolve claim bounds/removal; crafting stats/XP, station selection, and pending countdown behavior. **F05/F06/F07/F10** *(decided October 24, 2026: CRAFT-10, CRAFT-11, PWR-05, RUN-05)*
 - [ ] Before P5: resolve creator-stat details and crafter architecture. **F08/F09**
 
 Full decision descriptions are in [SPECS.md](SPECS.md#12-open-decisions). Do not count a proposed default as an accepted answer.

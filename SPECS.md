@@ -116,7 +116,7 @@ Routing defaults, filter direction, extraction order, and the tie-breaker were d
 | PWR-03 | An already dispatched native workstation job continues under normal native processing/fuel rules during an RSC outage. Do not cancel, refund, restart, or duplicate it merely because controller power failed. |
 | PWR-04 | RSC equipment adds no heat or noise. Do not suppress the native effects of connected generators or workstations. |
 
-Pending requests still in their five-second pre-dispatch window need an agreed outage policy under F07.
+| PWR-05 | Losing network power during a request's five-second countdown cancels that request, releases its reservations without consuming anything, and tells the requester (F07, decided October 24, 2026). |
 
 ## 8. v1 manual crafting
 
@@ -131,6 +131,8 @@ Pending requests still in their five-second pre-dispatch window need an agreed o
 | CRAFT-07 | Return finished request products to currently accessible eligible network storage. Leave unaccepted products safely in native station output if capacity/access/power prevents collection. |
 | CRAFT-08 | Attribute outputs to the dispatched request; do not collect unrelated manual crafting outputs as if they belonged to it. Retry blocked collection safely when the station/network is available. |
 | CRAFT-09 | Persist sufficient internal job state to handle accepted work and claim activity without duplicated inputs or outputs. Deferring the job-monitoring UI does not defer internal job tracking. |
+| CRAFT-10 | Use the **requesting player's** current effective stats (unlocks, quality tier, perk cost and time effects), resolved and frozen at dispatch. Crafting XP goes to the requester as items complete; an offline requester's XP is banked and granted at their next login (F05, decided October 24, 2026). |
+| CRAFT-11 | Choose the accessible compatible station with a free queue slot and the **shortest estimated remaining queue time**; ties use stable position order. Terminal jobs are appended behind existing jobs and never reorder a station's queue. A requester disconnecting during the countdown cancels the request and releases its reservations (F06, decided October 24, 2026). |
 
 ### Required request lifecycle
 
@@ -142,7 +144,7 @@ Pending requests still in their five-second pre-dispatch window need an agreed o
 6. Collect only attributable outputs into eligible storage; leave blocked outputs in the station.
 7. Persist/reconcile request state and release claim activity when native work completes.
 
-Requester stats/XP, station-selection order, coexistence with existing manual queues, and countdown disconnect/failure behavior remain F05-F07. Reservations must also account for direct native-container interaction; feasibility work must establish how to prevent or safely reject races at dispatch.
+Requester stats/XP, station selection, queue coexistence and countdown disconnect/outage behavior are decided in CRAFT-10, CRAFT-11 and PWR-05. Reservations must also account for direct native-container interaction; feasibility work must establish how to prevent or safely reject races at dispatch.
 
 ## 9. Unattended processing and persistence
 
@@ -152,11 +154,12 @@ Requester stats/XP, station-selection order, coexistence with existing manual qu
 | RUN-02 | Start with job-scoped activity for the controller's claimed area. Retain activity only while accepted native crafting work remains; waiting indefinitely for output capacity/power must not retain the claim forever. |
 | RUN-03 | No wall-clock production catch-up after the host closes the game. Reopening restores saved state rather than manufacturing shut-down-time output. |
 | RUN-04 | Track overlapping job/claim activity correctly and release activity resources on completion, invalidation, or world shutdown. Restore only valid unfinished work after loading. |
+| RUN-05 | A land claim is required only for unattended keepalive, not for normal network use. Keepalive covers the claim area containing the controller. Stations outside that claim work while players are nearby but are not kept active. If the claim or controller is removed, dispatched native jobs continue under vanilla rules, keepalive stops, and outputs stay in the station for manual pickup (F10, decided October 24, 2026). |
 | SAVE-01 | Host-side inventory mutations and request retries must preserve item totals and exact item identity during normal operation and supported recovery paths. |
 | SAVE-02 | Establish save boundaries, versioned media/job records, and interruption-recovery guarantees in P0. Do not promise cross-file crash atomicity without testing available game hooks. Accepted guarantee (October 19, 2026): state is consistent after a clean save or exit. After a crash, physical containers and RSC data each revert to their own last save, so physical/digital moves made after that save may be lost or duplicated. Mitigation: save RSC data immediately after the world save, and keep the SAVE-03 journal. |
 | SAVE-03 | Provide structured diagnostics, a bounded transfer/job journal, and owner/admin media export before public release. Recovery tools must not blindly duplicate already committed transfers. |
 
-Claim residency is a chosen prototype strategy, not a validated API result. It stays the chosen strategy even if native workstation catch-up on chunk reload is confirmed (re-confirmed October 19, 2026), so outputs are collected promptly. See [P0-FINDINGS.md](P0-FINDINGS.md). `ChunkManager.AddChunkObserver`/`RemoveChunkObserver` are candidates. Test actual station, fuel, electrical, and world-update behavior rather than equating chunk residency with correct simulation. Claim boundaries, outside stations, claim removal, and controller removal remain F10.
+Claim residency is a chosen prototype strategy, not a validated API result. It stays the chosen strategy even if native workstation catch-up on chunk reload is confirmed (re-confirmed October 19, 2026), so outputs are collected promptly. See [P0-FINDINGS.md](P0-FINDINGS.md). `ChunkManager.AddChunkObserver`/`RemoveChunkObserver` are candidates. Test actual station, fuel, electrical, and world-update behavior rather than equating chunk residency with correct simulation. Claim boundaries, outside stations, claim removal, and controller removal are decided in RUN-05.
 
 ## 10. v2 requirements and design boundary
 
@@ -202,12 +205,12 @@ Original F identifiers are preserved from the design. F12 makes existing unresol
 | ~~F02~~ | Decided October 23, 2026: see NET-04 | - |
 | ~~F03~~ | Decided October 23, 2026: see ROUTE-02/03/05 | - |
 | ~~F04~~ | Decided decided October 23, 2026: see DISK-08/09 and ACCESS-04 | - |
-| F05 | v1 requester crafting statistics and XP attribution; output return/fallback is already decided | P3 crafting |
-| F06 | Station selection, manual queue coexistence, and countdown disconnect behavior | P3 crafting |
-| F07 | Pending reservations/countdowns during an outage; dispatched jobs continuing is already decided | P3 crafting |
+| ~~F05~~ | Decided October 24, 2026: see CRAFT-10 | - |
+| ~~F06~~ | Decided October 24, 2026: see CRAFT-11 | - |
+| ~~F07~~ | Decided October 24, 2026: see PWR-05 | - |
 | F08 | v2 creator buffs, XP, and missing/offline profile details | P5 pattern design |
 | F09 | Crafter tiers/multiblocks and standalone versus workbench execution | P5 crafter design |
-| F10 | Claim requirements/bounds, outside stations, and claim/controller removal during jobs | P0 prototype/P3 behavior |
+| ~~F10~~ | Decided October 24, 2026: see RUN-05 | - |
 | ~~F11~~ | Decided October 23, 2026: see UI-05 and the design's product priority order | - |
 | F12 | Accounting, fairness and the technical cap decided October 23, 2026 (PROG-04/06). Still open: measured CPU/memory/traffic budgets and the final cap value | P4 benchmark |
 

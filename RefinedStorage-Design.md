@@ -153,11 +153,11 @@ Rejected or excess items remain at the source. No automatic disposal is included
 7. Return finished products to eligible accessible network storage using the crafting request's authority, rechecking current permissions, routing filters, capacity, connection, and power. Leave any unaccepted products safely in the station output. Do not collect unrelated manual-job outputs as if they belonged to the request.
 8. Persist enough job state to track accepted work and release the claimed-area keepalive when native processing completes. Output awaiting capacity or power must remain recoverable in the native station and must not keep the claim active forever merely to wait for a destination. Retry collection when the station/network is available again.
 
-One request for 100 rounds uses one workbench. A second request may use another workbench. There is no automatic 50/50 split in v1. Recommend choosing an accessible compatible station with queue capacity, then the shortest estimated queue, using stable node order for ties. Queue-order rules remain F06.
+One request for 100 rounds uses one workbench. A second request may use another workbench. There is no automatic 50/50 split in v1. Recommend choosing an accessible compatible station with queue capacity, then the shortest estimated queue, using stable node order for ties. Station selection and queue order are decided under F06 (below).
 
 Forge crafting uses material already smelted in the selected forge. It must not treat an iron item in a crate as immediately interchangeable with forge iron units. The first forge integration should use existing reserves and native queue validation.
 
-Confirmed outage behavior: an already dispatched native station job continues using its own normal rules and available fuel. The advanced terminal and network remain inaccessible, and network output collection waits until power returns. Do not remove, restart, or refund a native queued job merely because RSC power fails. Behavior for requests still in the pre-dispatch countdown remains F07.
+Confirmed outage behavior: an already dispatched native station job continues using its own normal rules and available fuel. The advanced terminal and network remain inaccessible, and network output collection waits until power returns. Do not remove, restart, or refund a native queued job merely because RSC power fails. Requests still in the pre-dispatch countdown are cancelled (F07, below).
 
 ### v2 patterns and crafter tiers
 
@@ -185,7 +185,7 @@ Initial prototype requirements:
 - Determine which simulation/update services must run in addition to residency. Do not invent a fake player until actual API behavior is understood.
 - Test native time, forge fuel/materials, workbench queues, electricity, and save/load while all players are away.
 - Release observers/residency requests on completion, world shutdown, invalidated jobs, and controller removal; reconstruct only valid unfinished requests after loading.
-- Define what happens to machines outside the claim or when a claim is removed, invalidated, or changed. This remains F10.
+- Machines outside the claim and claim/controller removal are decided under F10 (below).
 
 | Approach | Benefits | Costs and risks | Current status |
 |---|---|---|---|
@@ -345,16 +345,19 @@ Accepted by the project owner. All numbers are configurable defaults to tune aft
 - **Recipes and gates (step 5):** every RSC block and disk has a workbench recipe from existing materials (forged iron/steel, electrical and mechanical parts, scrap polymers) tagged `learnable`. Wiring 101 unlocks hub, interface and terminal at 25; the simple controller at 25 **and** Advanced Engineering 2; the advanced controller at 55 **and** Advanced Engineering 5; the drive cabinet and 1k disk at 55; disks 10k/100k/250k/500k/1m at 60/70/80/90/100. The "and" is one `RecipeTagUnlocked` effect with an Advanced Engineering requirement. The Wiring 101 page lists them as "Storage Network" (25), "Powered Storage" (55) and one entry per larger disk. Amounts are first-pass balance in `Mod/Config/recipes.xml`.
 - **Known gap:** damage a remote co-op client deals with their own tools may be applied on the client, in which case the server only sees the block disappear and treats it as a plain removal (disks drop intact, settings cleared). Zombie, explosion, collapse and host damage run on the server and use the rolls.
 
+## P3 decisions (accepted October 24, 2026)
+
+- **F05 - Stats and XP (CRAFT-10):** a terminal request uses the requesting player's current effective stats, frozen at dispatch: recipe unlocks, quality tier, and perk effects on ingredient cost and craft time. The requester receives the crafting XP as items complete; if they are offline it is banked and granted at their next login. This matches what they would get crafting at that station by hand.
+- **F06 - Station and queue (CRAFT-11):** pick the accessible compatible station with a free queue slot and the shortest estimated remaining queue time, ties in stable position order. One request uses one station. A terminal job is appended behind jobs already queued, including manual ones, and never reorders a station's queue. A requester who disconnects during the countdown has the request cancelled; nothing is consumed.
+- **F07 - Power during the countdown (PWR-05):** losing network power cancels any request still counting down, releases its reservations and tells the player. Dispatched jobs carry on natively (PWR-03).
+- **F10 - Claims (RUN-05):** the network works anywhere; a land claim is needed only for keeping the base active while players are away. Keepalive covers the claim area containing the controller, only while accepted jobs remain. A station outside that claim still works while players are nearby but is not kept active. If the claim or controller is removed while jobs run, dispatched jobs continue under vanilla rules, keepalive stops, and outputs stay in the station for manual pickup.
+
 ## Remaining decisions
 
 These are refinements, not another round of the original 36 questions. Accepted choices above stay accepted.
 
-- **F05 - Manual crafting:** use the requesting player's stats in v1, and who receives crafting XP? Output destination is decided: return to accessible network storage, with safe station-output fallback when no eligible capacity is available.
-- **F06 - Queueing:** choose a station with space and the shortest queue, or fill one station before choosing another? Should new terminal jobs append behind manual station jobs? Cancel an undispatched countdown if its player disconnects?
-- **F07 - Power loss:** should undelivered inputs remain reserved or should pending countdown requests be cancelled? Already dispatched native jobs continuing on their own fuel, with advanced output collection waiting for power, is decided.
 - **F08 - Creator stats for v2:** persistent progression only, or temporary buffs too? Who receives XP? What happens if the creator's saved profile becomes unavailable?
 - **F09 - Crafter tiers:** are increasing pattern slots and dispatch concurrency sufficient, or is a multiblock desired? What work may a standalone crafter perform while preserving the connected-workbench requirement?
-- **F10 - Claims:** must all linked devices/stations be within the controller's claim? What happens to accepted work when that claim/controller is removed? Would a claim be required only for unattended crafting or for all network use?
 
 ## Acceptance checklist
 
