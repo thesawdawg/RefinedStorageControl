@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using HarmonyLib;
 using RefinedStorageControl.Routing;
 
@@ -13,7 +12,6 @@ namespace RefinedStorageControl.Game.Persistence
     // store stays in memory until the next game start replaces it.
     internal static class NodeConfigFile
     {
-        private const string FolderName = "RefinedStorageControl";
         private const string FileName = "nodes.dat";
 
         private static string _loadedFrom;
@@ -26,22 +24,11 @@ namespace RefinedStorageControl.Game.Persistence
             _loadedFrom = null;
             if (!ConnectionManager.Instance.IsServer)
                 return;
-            string path = PathFor(GameIO.GetSaveGameDir());
-            _loadedFrom = path;
-            if (TryRead(path, out var store) || TryRead(path + ".bak", out store))
+            _loadedFrom = RscSaveFile.PathFor(FileName);
+            if (RscSaveFile.TryLoad(_loadedFrom, NodeConfigSerializer.Read, "node config", out var store))
             {
                 Store = store;
                 RscLog.Out("node config loaded: " + store.Count + " configured nodes");
-                return;
-            }
-            if (File.Exists(path) || File.Exists(path + ".bak"))
-            {
-                // Keep the unreadable files for diagnosis; never overwrite them silently.
-                string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-                foreach (var p in new[] { path, path + ".bak" })
-                    if (File.Exists(p))
-                        File.Move(p, p + ".unreadable-" + stamp);
-                RscLog.Error("node config unreadable; starting with defaults. Old files kept with suffix .unreadable-" + stamp);
             }
         }
 
@@ -49,52 +36,21 @@ namespace RefinedStorageControl.Game.Persistence
         {
             if (_loadedFrom == null || !ConnectionManager.Instance.IsServer || !Store.Dirty)
                 return;
-            if (!string.Equals(_loadedFrom, PathFor(GameIO.GetSaveGameDir()), StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(_loadedFrom, RscSaveFile.PathFor(FileName), StringComparison.OrdinalIgnoreCase))
                 return; // a different game is active; never write this store into it
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(_loadedFrom));
-                string tmp = _loadedFrom + ".tmp";
-                using (var writer = new BinaryWriter(File.Create(tmp)))
-                    NodeConfigSerializer.Write(writer, Store);
-                if (File.Exists(_loadedFrom))
-                    File.Copy(_loadedFrom, _loadedFrom + ".bak", overwrite: true);
-                if (File.Exists(_loadedFrom))
-                    File.Delete(_loadedFrom);
-                File.Move(tmp, _loadedFrom);
+            if (RscSaveFile.Write(_loadedFrom, w => NodeConfigSerializer.Write(w, Store), "node config"))
                 Store.Dirty = false;
-            }
-            catch (Exception e)
-            {
-                RscLog.Error("node config save failed: " + e);
-            }
-        }
-
-        private static string PathFor(string saveDir) => Path.Combine(Path.Combine(saveDir, FolderName), FileName);
-
-        private static bool TryRead(string path, out NodeConfigStore store)
-        {
-            store = null;
-            if (!File.Exists(path))
-                return false;
-            try
-            {
-                using (var reader = new BinaryReader(File.OpenRead(path)))
-                    store = NodeConfigSerializer.Read(reader);
-                return true;
-            }
-            catch (Exception e)
-            {
-                RscLog.Warning("node config read failed for " + path + ": " + e.Message);
-                return false;
-            }
         }
     }
 
     [HarmonyPatch(typeof(World), nameof(World.Save))]
     internal static class WorldSavePatch
     {
-        private static void Postfix() => NodeConfigFile.SaveIfNeeded();
+        private static void Postfix()
+        {
+            NodeConfigFile.SaveIfNeeded();
+            DiskFile.SaveIfNeeded();
+        }
     }
 
     // A removed RSC block loses its settings, so a new block placed at the same

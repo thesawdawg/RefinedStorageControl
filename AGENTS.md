@@ -12,7 +12,8 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
 
 - `Source/` — the mod assembly (`RefinedStorageControl.dll`, net48).
   - `Source/Core/` — network topology registry (pure).
-  - `Source/Storage/` — disk records and binary serialization (pure).
+  - `Source/Storage/` — disk records, the world disk store (cabinet slots,
+    world binding) and binary serialization (pure).
   - `Source/Access/` — owner + allowlist ACLs (pure).
   - `Source/Routing/` — transfer budget, stack placement, provider ordering
     and filters (pure).
@@ -23,8 +24,8 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
     - `Source/Game/Topology/` — wire tree projection and wire rules.
     - `Source/Game/Providers/` — vanilla container providers, the host
       transfer service, and `rsc net` commands.
-    - `Source/Game/Persistence/` — RSC save files (interface settings) and
-      the save/removal hooks.
+    - `Source/Game/Persistence/` — RSC save files (`nodes.dat`, `disks.dat`
+      via `RscSaveFile`) and the save/removal hooks.
     - `Source/Game/Blocks/` — `BlockRscNode` (E action for terminals and
       interfaces; keeps the vanilla powered tile entity).
     - `Source/Game/UI/` — XUi controllers and host/client window backends;

@@ -18,7 +18,7 @@ namespace RefinedStorageControl.Access
             Entries = new ReadOnlyDictionary<string, DigitalPermission>(_entries);
         }
 
-        public string OwnerId { get; }
+        public string OwnerId { get; private set; }
         public bool HasOwner => OwnerId.Length > 0;
         public IReadOnlyDictionary<string, DigitalPermission> Entries { get; }
 
@@ -51,7 +51,38 @@ namespace RefinedStorageControl.Access
                 _entries[targetPlayerId] = perms;
         }
 
-        // Ownership transfer is intentionally not implemented (open decision RSC-01/F04).
+        // ACCESS-04: the owner hands the disk to a player already on the
+        // allowlist. The new owner leaves the allowlist (owners are implicit);
+        // the previous owner stays on it with the default deposit + withdraw.
+        public void TransferOwnership(string actingPlayerId, string newOwnerId)
+        {
+            if (!HasOwner || !string.Equals(actingPlayerId, OwnerId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Only the owner may transfer ownership.");
+            if (string.IsNullOrEmpty(newOwnerId) || !_entries.ContainsKey(newOwnerId))
+                throw new InvalidOperationException("Ownership can only go to a player on the allowlist.");
+            string previous = OwnerId;
+            _entries.Remove(newOwnerId);
+            OwnerId = newOwnerId;
+            _entries[previous] = DefaultGrant;
+        }
+
+        // ACCESS-04 host override (console), e.g. for a player who left for good.
+        // The previous owner, if any, keeps the default grant.
+        public void ForceOwner(string newOwnerId)
+        {
+            if (string.IsNullOrEmpty(newOwnerId))
+                throw new ArgumentException("New owner id must not be empty.", nameof(newOwnerId));
+            if (string.Equals(newOwnerId, OwnerId, StringComparison.Ordinal))
+                return;
+            string previous = OwnerId;
+            _entries.Remove(newOwnerId);
+            OwnerId = newOwnerId;
+            if (previous.Length > 0)
+                _entries[previous] = DefaultGrant;
+        }
+
+        // ACCESS-04: what a newly added allowlist entry gets.
+        public const DigitalPermission DefaultGrant = DigitalPermission.Deposit | DigitalPermission.Withdraw;
 
         // Save-restore path used by the disk serializer after the on-disk format
         // has already been validated; bypasses the owner-only mutation rule.

@@ -326,6 +326,14 @@ Accepted by the project owner. All numbers are configurable defaults to tune aft
 - **F04 - Media:** disks are bound to their world (contents live in that world's save and item ids differ between worlds); in another world a disk shows "data unavailable". A cabinet can be picked up only when empty. Rationale: no corrupted cross-world items, no pickup exploits or accidental loss.
 - **ACCESS-04 - Ownership:** owner is the first player to insert the disk blank; inserting or removing never changes ownership. The owner can transfer to an allowlisted player; the host can reassign any disk by console command. The allowlist works while the owner is offline. New allowlist entries get deposit + withdraw; craft and configure (including editing the allowlist) are granted separately. Rationale: predictable ownership, owner stays in control, admins can recover abandoned disks.
 
+### P2 implementation notes (October 23, 2026)
+
+- **Build order:** (1) disk store, save file, disk items, cabinet block, power values; (2) cabinet window to insert/remove disks and manage owner/allowlist, host and co-op; (3) disks as providers in deposit/withdraw routing with ACL and power checks; (4) destruction survival rolls, empty-only cabinet pickup, interface filter loss; (5) recipes and Wiring 101 gates.
+- **Disk identity:** a disk item carries `rsc.disk` (disk id) and `rsc.world` (world id) in native item metadata. A blank disk has neither; its record and owner are created on first insert. Contents live in `<save>/RefinedStorageControl/disks.dat` with the cabinet slot map; the file's world id is what binds disks to the world.
+- **One slot per disk:** the store refuses to install a disk that is already installed anywhere, so a stale copy of a disk item cannot duplicate its contents. Destroyed disks lose their record for good.
+- **Ownership transfer:** the previous owner stays on the allowlist with the default deposit + withdraw.
+- **Shared save handling:** interface settings and disks both use the .tmp/.bak/.unreadable pattern in `RscSaveFile`.
+
 ## Remaining decisions
 
 These are refinements, not another round of the original 36 questions. Accepted choices above stay accepted.

@@ -63,5 +63,32 @@ internal static class AccessTests
         caseCheck.Set("Owner", "Alice", DigitalPermission.Deposit);
         Check(!caseCheck.Has("owner", DigitalPermission.Deposit) && !caseCheck.Has("alice", DigitalPermission.Deposit),
             "Player ids must be ordinal and case-sensitive.");
+
+        OwnershipTests();
+    }
+
+    private static void OwnershipTests()
+    {
+        Check(DigitalAcl.DefaultGrant == (DigitalPermission.Deposit | DigitalPermission.Withdraw),
+            "New allowlist entries default to deposit + withdraw.");
+        var acl = new DigitalAcl("ann");
+        acl.Set("ann", "bob", DigitalPermission.Withdraw);
+        Reject(() => acl.TransferOwnership("bob", "ann"), "Only the owner may transfer ownership.");
+        Reject(() => acl.TransferOwnership("ann", "cat"), "Ownership must go to an allowlisted player.");
+        acl.TransferOwnership("ann", "bob");
+        Check(acl.OwnerId == "bob" && !acl.Entries.ContainsKey("bob") && acl.Has("bob", DigitalPermission.All),
+            "The new owner must have full access and leave the allowlist.");
+        Check(acl.Entries["ann"] == DigitalAcl.DefaultGrant && !acl.Has("ann", DigitalPermission.Configure),
+            "The previous owner must keep the default grant only.");
+        Reject(() => acl.Set("ann", "cat", DigitalPermission.Deposit), "The previous owner must lose allowlist control.");
+
+        acl.ForceOwner("dan");
+        Check(acl.OwnerId == "dan" && acl.Entries["bob"] == DigitalAcl.DefaultGrant,
+            "A forced owner change must keep the previous owner with the default grant.");
+        var ownerless = new DigitalAcl("");
+        ownerless.ForceOwner("eve");
+        Check(ownerless.HasOwner && ownerless.OwnerId == "eve" && ownerless.Entries.Count == 0,
+            "Forcing an owner onto an ownerless disk must not add an empty entry.");
+        Reject<ArgumentException>(() => ownerless.ForceOwner(""), "Forcing an empty owner must throw.");
     }
 }

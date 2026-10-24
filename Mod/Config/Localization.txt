@@ -20,3 +20,11 @@ rscPriorityHint,UI,UI,,,Lower numbers fill first; higher numbers are emptied fir
 rscFilter,UI,UI,,,Filter
 rscAddHeld,UI,UI,,,Add held item
 rscClearFilter,UI,UI,,,Clear filter
+rscProtoDriveCabinet,blocks,Block,,,RSC Drive Cabinet (dev)
+rscDisk1k,items,Item,,,Storage Disk 1k
+rscDisk10k,items,Item,,,Storage Disk 10k
+rscDisk100k,items,Item,,,Storage Disk 100k
+rscDisk250k,items,Item,,,Storage Disk 250k
+rscDisk500k,items,Item,,,Storage Disk 500k
+rscDisk1m,items,Item,,,Storage Disk 1m
+rscDiskDesc,items,Item,,,"Digital storage for a drive cabinet on a powered storage network. The disk keeps its contents when removed but only works in the world it was first used in."

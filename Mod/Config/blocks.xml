@@ -1,6 +1,6 @@
 <configs>
   <!-- Prototype RSC network blocks (dev-only, CreativeMode Player).
-       RequiredPower watts are placeholders: F01 (power budgets) is open.
+       RequiredPower watts are the F01 defaults (controller 10, interface 2, terminal 3, cabinet 5, hub 0).
        They reuse the relay model and icon; the icon tint tells them apart.
        Class keeps the vanilla powered tile entity and adds the E action for
        terminals and interfaces. -->
@@ -21,7 +21,7 @@
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="2050C0" />
       <property name="CreativeMode" value="Player" />
-      <property name="RequiredPower" value="5" />
+      <property name="RequiredPower" value="10" />
       <property name="RscRole" value="Controller" />
       <property name="RscTier" value="Advanced" />
     </block>
@@ -40,7 +40,7 @@
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="E0A040" />
       <property name="CreativeMode" value="Player" />
-      <property name="RequiredPower" value="1" />
+      <property name="RequiredPower" value="2" />
       <property name="RscRole" value="Interface" />
     </block>
     <block name="rscProtoTerminal">
@@ -49,8 +49,17 @@
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="60D060" />
       <property name="CreativeMode" value="Player" />
-      <property name="RequiredPower" value="1" />
+      <property name="RequiredPower" value="3" />
       <property name="RscRole" value="Terminal" />
+    </block>
+    <block name="rscProtoDriveCabinet">
+      <property name="Extends" value="electricwirerelay" />
+      <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
+      <property name="CustomIcon" value="electricwirerelay" />
+      <property name="CustomIconTint" value="C060C0" />
+      <property name="CreativeMode" value="Player" />
+      <property name="RequiredPower" value="5" />
+      <property name="RscRole" value="DriveCabinet" />
     </block>
   </append>
 </configs>

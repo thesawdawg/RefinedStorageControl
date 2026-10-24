@@ -26,6 +26,7 @@ namespace RefinedStorageControl.Game
         private static void OnGameStartDone(ref ModEvents.SGameStartDoneData data)
         {
             Persistence.NodeConfigFile.Load();
+            Persistence.DiskFile.Load();
         }
 
         private static void OnWorldShuttingDown(ref ModEvents.SWorldShuttingDownData data)
