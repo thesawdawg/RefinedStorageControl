@@ -42,7 +42,7 @@ Runtime API inspection has identified integration candidates, not proven their b
 | NET-06 | Only a controller may be wired from a vanilla power device (generator, battery, relay). Any other RSC block may only be wired from an RSC block, and RSC blocks may only have RSC children. Disallowed wires are rejected like NET-04 (decided October 23, 2026). |
 | NET-05 | Detect topology changes, including cable breaks and conflicting connections. Recheck network validity before accepting a transfer; stale UI cannot authorize disconnected access. |
 | PROG-01 | Advanced Engineering **rank 2** unlocks Simple Storage Control; **rank 5** unlocks Refined Storage Control. |
-| PROG-02 | Gate stage components through **Wiring 101** progression. Exact magazine thresholds remain open under F01. |
+| PROG-02 | Gate stage components through **Wiring 101** progression: simple-tier parts at **25**, advanced controller and parts at **55**, disks 1k/10k/100k/250k/500k/1m at **55/60/70/80/90/100** (F01, decided October 23, 2026; values configurable). |
 | PROG-03 | Simple Storage Control operates without electricity and exposes connected physical storage. |
 | PROG-04 | Simple-controller transfers share a configurable limit of **two completed stack transfers per second per controller** across all users. One transfer is one move out of one source slot, up to a full stack, whatever the count. Deposit-matching counts each stack moved. Players are served round-robin; crafting and internal moves (P3) use the same budget, after player requests (F12, decided October 23, 2026). |
 | PROG-06 | Advanced-controller transfers have no gameplay limit, only a configurable per-network technical cap (initially **20 transfers per second**), finalized by the P4 benchmark (F12). |
@@ -83,11 +83,13 @@ Network conflicts (F02) and transfer accounting/fairness (F12) were decided Octo
 | DISK-01 | Provide the six capacities above, counted as individual items rather than native stack slots or distinct item types. |
 | DISK-02 | Disks retain data when removed and transported. Their contents are usable only while installed in a drive cabinet on a usable advanced network. |
 | DISK-03 | Preserve exact stored item state across insertion, extraction, media movement, and supported save/reload operations. |
-| DISK-04 | Cabinet destruction rolls survival separately for each installed disk. Surviving disks drop intact with contents; destroyed disks and their contents are permanently lost. |
-| DISK-05 | Terminal destruction loses no network contents because the terminal owns none. Interface destruction may randomly lose filters/upgrades while leaving the underlying container to its native rules. |
+| DISK-04 | Cabinet destruction rolls survival separately for each installed disk, default **50%** each (configurable). Surviving disks drop intact with contents; destroyed disks and their contents are permanently lost. |
+| DISK-05 | Terminal destruction loses no network contents because the terminal owns none. Interface destruction loses its filter settings with a default **50%** chance (configurable) while leaving the underlying container to its native rules. |
 | DISK-06 | Apply destruction/drop cleanup once; surviving media must retain their data, and destroyed media must not reappear through a stale reference or repeated event. |
 
-Cabinet slot count, survival probabilities, loaded-cabinet pickup, cross-save transport, and media ownership-transfer rules remain open. A durable disk identifier with versioned item records is a proposed implementation approach, not an approved cross-world transport policy.
+| DISK-07 | A drive cabinet holds **6** disks (F01, decided October 23, 2026). |
+| DISK-08 | Disks are bound to the world they were created in. A disk carried into another world shows "data unavailable" and cannot be used there (F04, decided October 23, 2026). |
+| DISK-09 | A drive cabinet can be picked up only when it holds no disks; otherwise pickup is refused with "remove the disks first" (F04, decided October 23, 2026). |
 
 ## 6. Access and routing
 
@@ -96,7 +98,7 @@ Cabinet slot count, survival probabilities, loaded-cabinet pickup, cross-save tr
 | ACCESS-01 | Physical storage follows the requesting player's current native container access. Being connected to the same network does not grant additional container permissions. Native access is followed exactly: an unlocked container is reachable by any network user, as it is in person (decided October 19, 2026). The host re-applies the native rule because the game checks it only on the client. |
 | ACCESS-02 | Filter displayed inventories per viewer and validate permissions on the host for each mutation. Permission changes invalidate later unauthorized operations. |
 | ACCESS-03 | Digital storage uses an **owner plus an explicit per-player allowlist**, with separate **deposit, withdraw, craft, and configure** permissions. Inserting a disk does not make it public. |
-| ACCESS-04 | Define ownership assignment/transfer, offline identities, and invalid/missing-owner behavior before shipping disks. Keep this work tracked as **RSC-01**. |
+| ACCESS-04 | A disk's owner is the player who first inserts it blank into a cabinet; inserting or removing a disk never changes its owner. The owner can transfer ownership to a player already on the disk's allowlist; the host can reassign any disk by console command (covers players who left). The allowlist keeps working while the owner is offline. New allowlist entries get **deposit + withdraw**; craft and configure (which includes editing the allowlist) are granted separately (F04, decided October 23, 2026). Tracked as **RSC-01**. |
 | ROUTE-01 | Apply provider eligibility and configured filters before destination selection. Exclude inaccessible/disconnected providers and advanced providers lacking power. |
 | ROUTE-02 | Give each storage interface/provider a configurable integer priority from **0 to 100**, **default 50**, with lower numbers preferred for deposits. Implement priority fields/configuration under **RSC-02**. |
 | ROUTE-03 | Deposits: lowest priority number first; within equal priority, prefer a provider already holding the exact item; remaining ties use a fixed node-position order. Withdrawals: highest priority number (least preferred) first, with the same fixed tie order. |
@@ -109,7 +111,7 @@ Routing defaults, filter direction, extraction order, and the tie-breaker were d
 
 | ID | Requirement |
 |---|---|
-| PWR-01 | Advanced equipment requires electricity, with consumption scaling by attached interfaces, crafters, and other devices. Exact watts/device remain configurable balance decisions. |
+| PWR-01 | Advanced equipment requires electricity, with consumption scaling by attached interfaces, crafters, and other devices. Defaults (configurable): advanced controller **10 W**, interface **2 W**, terminal **3 W**, drive cabinet **5 W**, hub **0 W** (F01, decided October 23, 2026). |
 | PWR-02 | Advanced terminal/storage interaction is inaccessible without power. Automatic network output collection also waits for network power. |
 | PWR-03 | An already dispatched native workstation job continues under normal native processing/fuel rules during an RSC outage. Do not cancel, refund, restart, or duplicate it merely because controller power failed. |
 | PWR-04 | RSC equipment adds no heat or noise. Do not suppress the native effects of connected generators or workstations. |
@@ -196,10 +198,10 @@ Original F identifiers are preserved from the design. F12 makes existing unresol
 
 | ID | Decision needed | Needed by |
 |---|---|---|
-| F01 | Exact magazine gates, cabinet slots, watts/device, and disk/interface survival probabilities | P2 content and balance |
+| ~~F01~~ | Decided decided October 23, 2026: see PROG-02, PWR-01, DISK-04/05/07 | - |
 | ~~F02~~ | Decided October 23, 2026: see NET-04 | - |
 | ~~F03~~ | Decided October 23, 2026: see ROUTE-02/03/05 | - |
-| F04 | Same-world/cross-world media, loaded cabinet pickup, ownership assignment/transfer, offline-owner policy | P2 media/access |
+| ~~F04~~ | Decided decided October 23, 2026: see DISK-08/09 and ACCESS-04 | - |
 | F05 | v1 requester crafting statistics and XP attribution; output return/fallback is already decided | P3 crafting |
 | F06 | Station selection, manual queue coexistence, and countdown disconnect behavior | P3 crafting |
 | F07 | Pending reservations/countdowns during an outage; dispatched jobs continuing is already decided | P3 crafting |

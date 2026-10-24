@@ -65,7 +65,7 @@ Proposed implementation details, not yet balance commitments:
 
 - Separate controller unlocks from component-tier unlocks; controller crafting requires its specified perk rank and magazine gate, while support components use their configured magazine thresholds.
 - Begin component availability near the existing electrical thresholds. Installed XML currently gates generators/relays at electrician skill 25, a second electrical tier at 45, and battery banks at 55.
-- Candidate recipe table: simple components at 25, advanced controller/components at 55, disks at 55/60/70/80/90/100. Exact mapping remains F01.
+- Recipe gates (F01, decided October 23, 2026): simple components at 25, advanced controller/components at 55, disks at 55/60/70/80/90/100, mirroring vanilla relays (25), battery banks (55) and quality car batteries (55-100). Wiring 101 goes to 100 in 3.3.
 - A transfer action moves at most one native stack, or one nonstacking item. Bulk operations queue individual transfers; they cannot bypass throttling by requesting an unlimited quantity in one action.
 - Queue fairness should prevent one bulk deposit from blocking every other player indefinitely. A simple round-robin of pending player requests is the starting recommendation.
 - The scope of the transfer budget for crafting dispatch and automatic output collection needs to be specified alongside those flows; internal transfers must not become an accidental way to bypass the intended simple-tier limit.
@@ -119,7 +119,7 @@ Implementation recommendation: use durable media identifiers and versioned recor
 
 Confirmed digital RBAC baseline: an owner plus an explicit per-player allowlist, with distinct **deposit, withdraw, craft, and configure** permissions. Physical containers continue to use their native access rules. Host-side checks apply to every operation; inserting a disk does not make its contents public.
 
-**TODO RSC-01 is required before digital storage can ship:** implement that framework and finish ownership assignment/transfer, media portability, and offline-owner rules. Those lifecycle details remain open; the owner-plus-allowlist permission model is decided.
+**TODO RSC-01 is required before digital storage can ship:** implement that framework with the ownership lifecycle decided under F04 (see below).
 
 ### Routing policy
 
@@ -138,7 +138,7 @@ Rejected or excess items remain at the source. No automatic disposal is included
 - Storage interface: may lose filters/upgrades randomly; underlying container follows its native destruction rules.
 - Drive cabinet: roll survival once per installed disk. Surviving disks drop intact with their data. Destroyed disks and their stored contents are permanently lost.
 - Controlled pickup of a disk is distinct from destructive loss. Cleanup must preserve surviving disk records and remove destroyed disk records exactly once.
-- Survival probabilities, filter/upgrade recovery behavior, and controlled cabinet pickup rules remain F04.
+- Survival probabilities and cabinet pickup are decided under F01/F04 (see below).
 
 ## Crafting: native stations first
 
@@ -318,12 +318,18 @@ Choices made while building the container provider and transfer service. They fo
 - Known gap: if a client disconnects while a stack is in flight, that one stack can be lost.
 - Interface settings for clients: the window asks the server for the current settings and sends changes; the server validates item names and ranges and answers with the stored result.
 
+## Decisions for P2 (decided October 23, 2026)
+
+Accepted by the project owner. All numbers are configurable defaults to tune after playtesting.
+
+- **F01 - Balance:** Wiring 101 gates of 25 (simple parts), 55 (advanced controller and parts) and 55/60/70/80/90/100 (disks 1k-1m). Six disks per cabinet. Power: advanced controller 10 W, interface 2 W, terminal 3 W, drive cabinet 5 W, hub 0 W (a 24-interface, 2-terminal, 2-cabinet base draws about 74 W). Destruction: each disk in a destroyed cabinet survives with 50% chance; a destroyed interface loses its filter settings with 50% chance. Rationale: gates follow existing electrical progression; power is a real but mid-game cost.
+- **F04 - Media:** disks are bound to their world (contents live in that world's save and item ids differ between worlds); in another world a disk shows "data unavailable". A cabinet can be picked up only when empty. Rationale: no corrupted cross-world items, no pickup exploits or accidental loss.
+- **ACCESS-04 - Ownership:** owner is the first player to insert the disk blank; inserting or removing never changes ownership. The owner can transfer to an allowlisted player; the host can reassign any disk by console command. The allowlist works while the owner is offline. New allowlist entries get deposit + withdraw; craft and configure (including editing the allowlist) are granted separately. Rationale: predictable ownership, owner stays in control, admins can recover abandoned disks.
+
 ## Remaining decisions
 
 These are refinements, not another round of the original 36 questions. Accepted choices above stay accepted.
 
-- **F01 - Balance table:** approve or change proposed magazine gates (simple components 25; advanced components 55; disks 55/60/70/80/90/100), cabinet slots, device power costs, and disk/interface survival chances.
-- **F04 - Media:** may a disk move between separate save worlds? May a cabinet be picked up while loaded? Decide ownership transfer when a teammate inserts or removes a disk.
 - **F05 - Manual crafting:** use the requesting player's stats in v1, and who receives crafting XP? Output destination is decided: return to accessible network storage, with safe station-output fallback when no eligible capacity is available.
 - **F06 - Queueing:** choose a station with space and the shortest queue, or fill one station before choosing another? Should new terminal jobs append behind manual station jobs? Cancel an undispatched countdown if its player disconnects?
 - **F07 - Power loss:** should undelivered inputs remain reserved or should pending countdown requests be cancelled? Already dispatched native jobs continuing on their own fuel, with advanced output collection waiting for power, is decided.
