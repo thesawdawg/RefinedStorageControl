@@ -9,3 +9,17 @@
 # Game-derived investigation dumps and local tools (never commit)
 /Investigation/
 /.tools/
+
+# Unity bundle project: only Assets/Editor, Packages and ProjectSettings are source
+/Tools/Unity/RscBundle/Library/
+/Tools/Unity/RscBundle/Temp/
+/Tools/Unity/RscBundle/Logs/
+/Tools/Unity/RscBundle/UserSettings/
+/Tools/Unity/RscBundle/Assets/RSC/
+/Tools/Unity/RscBundle/Assets/RSC.meta
+/Tools/Unity/RscBundle/BundleOut/
+/Tools/Unity/RscBundle/*.csproj
+/Tools/Unity/RscBundle/*.sln
+
+# Blender backup copies
+*.blend1

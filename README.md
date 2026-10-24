@@ -6,7 +6,7 @@ Centralized storage access is the primary goal. v1 covers wired physical storage
 
 ## Status
 
-P1 (physical storage), P2 (digital disks) and P3 (terminal crafting) are built and host-tested in game; co-op and the full acceptance run are still to do. P4 (verification and release preparation) is in progress. Blocks have their own icons; placed blocks still use the vanilla relay model until custom models are bundled.
+P1 (physical storage), P2 (digital disks) and P3 (terminal crafting) are built and host-tested in game; co-op and the full acceptance run are still to do. P4 (verification and release preparation) is in progress. Blocks have their own icons and models (built with Blender and Unity; not yet checked in game).
 
 ## What it does
 

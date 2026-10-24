@@ -447,7 +447,8 @@ def export_fbx(r):
     bpy.context.view_layer.objects.active = r
     try:
         bpy.ops.export_scene.fbx(filepath=os.path.join(MODEL_DIR, r.name + ".fbx"), use_selection=True,
-                                 apply_unit_scale=True, use_mesh_modifiers=True, object_types={"EMPTY", "MESH"})
+                                 apply_unit_scale=True, use_mesh_modifiers=True, object_types={"EMPTY", "MESH"},
+                                 bake_space_transform=True, apply_scale_options="FBX_SCALE_ALL")
     except Exception as e:  # the exporter is an add-on; icons matter more than FBX
         print("[rsc_art] FBX export skipped for %s: %s" % (r.name, e))
 
