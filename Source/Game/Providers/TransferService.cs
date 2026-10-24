@@ -17,12 +17,13 @@ namespace RefinedStorageControl.Game.Providers
     {
         public readonly struct Result
         {
-            public Result(bool ok, int moved, int transfers, string reason)
+            public Result(bool ok, int moved, int transfers, string reason, bool budgetLimited = false)
             {
                 Ok = ok;
                 Moved = moved;
                 Transfers = transfers;
                 Reason = reason;
+                BudgetLimited = budgetLimited;
             }
 
             public bool Ok { get; }
@@ -30,7 +31,11 @@ namespace RefinedStorageControl.Game.Providers
             public int Transfers { get; }
             public string Reason { get; }
 
+            // Nothing was wrong with the request; the transfer budget was used up.
+            public bool BudgetLimited { get; }
+
             public static Result Fail(string reason) => new Result(false, 0, 0, reason);
+            public static Result Budget(string reason) => new Result(false, 0, 0, reason, budgetLimited: true);
         }
 
         public sealed class Entry
@@ -69,7 +74,7 @@ namespace RefinedStorageControl.Game.Providers
                 for (int i = 0; i < p.Grid.Length; i++)
                 {
                     var stack = p.Grid[i];
-                    if (ContainerProvider.IsEmpty(stack))
+                    if (GridEndpoint.IsEmpty(stack))
                         continue;
                     var key = ItemKeys.FromItemValue(stack.itemValue);
                     if (!byKey.TryGetValue(key, out var e))
@@ -90,7 +95,7 @@ namespace RefinedStorageControl.Game.Providers
 
         // One source slot into the network: one transfer, split across providers
         // in deposit order. Whatever does not fit stays in the source (ROUTE-04).
-        public static Result Deposit(PlatformUserIdentifierAbs user, Vector3i nodePos, ContainerProvider source, int slot)
+        public static Result Deposit(PlatformUserIdentifierAbs user, Vector3i nodePos, GridEndpoint source, int slot)
         {
             if (!TryResolveNetwork(nodePos, out var net, out string reason))
                 return Result.Fail(reason);
@@ -101,11 +106,11 @@ namespace RefinedStorageControl.Game.Providers
             if (source.SlotLocked(slot))
                 return Result.Fail("source slot " + slot + " is locked");
             var stack = source.Grid[slot];
-            if (ContainerProvider.IsEmpty(stack))
+            if (GridEndpoint.IsEmpty(stack))
                 return Result.Fail("source slot " + slot + " is empty");
             var budget = BudgetFor(net);
             if (budget.Remaining(Now) <= 0)
-                return Result.Fail(BudgetReason(budget));
+                return Result.Budget(BudgetReason(budget));
 
             var key = ItemKeys.FromItemValue(stack.itemValue);
             string itemName = Name(stack.itemValue);
@@ -138,14 +143,14 @@ namespace RefinedStorageControl.Game.Providers
             source.Take(slot, moved);
             source.MarkModified();
             budget.TryConsume(Now);
-            RscLog.Out("deposit " + moved + "x '" + itemName + "' from " + source.Position + "[" + slot + "] into network "
+            RscLog.Out("deposit " + moved + "x '" + itemName + "' from " + source.Label + "[" + slot + "] into network "
                 + RscBlocks.FromNodeId(net.Controller) + " (" + plans.Count + " providers)");
             return new Result(true, moved, 1, remaining > 0 ? remaining + " left in source (network full)" : null);
         }
 
         // Up to one stack of the exact item into the endpoint. Each provider slot
         // drawn from is one transfer; a partial result reports the budget limit.
-        public static Result Withdraw(PlatformUserIdentifierAbs user, Vector3i nodePos, ItemKey key, int count, ContainerProvider dest)
+        public static Result Withdraw(PlatformUserIdentifierAbs user, Vector3i nodePos, ItemKey key, int count, GridEndpoint dest)
         {
             if (!TryResolveNetwork(nodePos, out var net, out string reason))
                 return Result.Fail(reason);
@@ -156,7 +161,7 @@ namespace RefinedStorageControl.Game.Providers
             var budget = BudgetFor(net);
             int allowance = budget.Remaining(Now);
             if (allowance <= 0)
-                return Result.Fail(BudgetReason(budget));
+                return Result.Budget(BudgetReason(budget));
 
             var candidates = Eligible(net, user, dest, key, holdsCheck: false, out var infos);
             ItemValue sample = null;
@@ -208,7 +213,7 @@ namespace RefinedStorageControl.Game.Providers
                 budget.TryConsume(Now);
 
             RscLog.Out("withdraw " + moved + "x '" + Name(sample) + "' from network " + RscBlocks.FromNodeId(net.Controller)
-                + " into " + dest.Position + " (" + sources.Count + " transfers)");
+                + " into " + dest.Label + " (" + sources.Count + " transfers)");
             string note = null;
             if (moved < fit)
                 note = sources.Count >= allowance ? "stopped by transfer budget" : "network had only " + moved;
@@ -300,14 +305,14 @@ namespace RefinedStorageControl.Game.Providers
         };
 
         // Priority and filter come from the serving interface's saved settings.
-        private static List<ContainerProvider> Eligible(Network net, PlatformUserIdentifierAbs user, ContainerProvider endpoint,
+        private static List<ContainerProvider> Eligible(Network net, PlatformUserIdentifierAbs user, GridEndpoint endpoint,
             ItemKey key, bool holdsCheck, out List<ProviderInfo> infos)
         {
             var eligible = new List<ContainerProvider>();
             infos = new List<ProviderInfo>();
             foreach (var p in net.Providers)
             {
-                if (p.Position.Equals(endpoint.Position) || !p.CanAccess(user) || p.InUse)
+                if (ReferenceEquals(p.Grid, endpoint.Grid) || !p.CanAccess(user) || p.InUse)
                     continue;
                 eligible.Add(p);
                 var config = p.Interface.HasValue
@@ -318,7 +323,7 @@ namespace RefinedStorageControl.Game.Providers
             return eligible;
         }
 
-        private static bool CheckEndpoint(ContainerProvider endpoint, PlatformUserIdentifierAbs user, out string reason)
+        private static bool CheckEndpoint(GridEndpoint endpoint, PlatformUserIdentifierAbs user, out string reason)
         {
             if (!endpoint.CanAccess(user))
                 reason = "access denied (locked, jammed or needs lockpicking)";

@@ -6,3 +6,18 @@ rscProtoInterface,blocks,Block,,,RSC Interface (dev)
 rscWireConflict,ui,UI,,,Would join two storage controllers
 rscWireVanillaParent,ui,UI,,,Only a storage controller can connect to power wiring
 rscWireVanillaChild,ui,UI,,,Storage blocks cannot power other devices
+rscProtoTerminal,blocks,Block,,,RSC Terminal (dev)
+blockcommand_rsc_open,UI,UI,,,Open
+rscPromptTerminal,UI,UI,,,{0} Open {1}
+rscPromptInterface,UI,UI,,,{0} Configure {1}
+rscClientUnsupported,UI,UI,,,Storage windows currently work for the host only
+rscTerminalTitle,UI,UI,,,Storage Terminal
+rscInterfaceTitle,UI,UI,,,Storage Interface
+rscDepositMatching,UI,UI,,,Store matching
+rscDepositAll,UI,UI,,,Store all
+rscBackpack,UI,UI,,,Backpack (click to store)
+rscPriority,UI,UI,,,Priority
+rscPriorityHint,UI,UI,,,Lower numbers fill first; higher numbers are emptied first
+rscFilter,UI,UI,,,Filter
+rscAddHeld,UI,UI,,,Add held item
+rscClearFilter,UI,UI,,,Clear filter

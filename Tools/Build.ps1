@@ -17,7 +17,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $managed 'Assembly-CSharp.dll'))) {
 # Fail fast on malformed mod XML before any build work.
 $configDir = Join-Path $projectRoot 'Mod\Config'
 if (Test-Path -LiteralPath $configDir) {
-    Get-ChildItem -LiteralPath $configDir -Filter '*.xml' -File | ForEach-Object {
+    Get-ChildItem -LiteralPath $configDir -Filter '*.xml' -File -Recurse | ForEach-Object {
         try { [xml](Get-Content -LiteralPath $_.FullName -Raw) | Out-Null }
         catch { throw "Malformed XML in $($_.FullName): $($_.Exception.Message)" }
     }

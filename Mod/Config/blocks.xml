@@ -1,10 +1,13 @@
 <configs>
   <!-- Prototype RSC network blocks (dev-only, CreativeMode Player).
        RequiredPower watts are placeholders: F01 (power budgets) is open.
-       They reuse the relay model and icon; the icon tint tells them apart. -->
+       They reuse the relay model and icon; the icon tint tells them apart.
+       Class keeps the vanilla powered tile entity and adds the E action for
+       terminals and interfaces. -->
   <append xpath="/blocks">
     <block name="rscProtoControllerSimple">
       <property name="Extends" value="electricwirerelay" />
+      <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="4A90E2" />
       <property name="CreativeMode" value="Player" />
@@ -14,6 +17,7 @@
     </block>
     <block name="rscProtoControllerAdvanced">
       <property name="Extends" value="electricwirerelay" />
+      <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="2050C0" />
       <property name="CreativeMode" value="Player" />
@@ -23,6 +27,7 @@
     </block>
     <block name="rscProtoHub">
       <property name="Extends" value="electricwirerelay" />
+      <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="40C0C0" />
       <property name="CreativeMode" value="Player" />
@@ -31,11 +36,21 @@
     </block>
     <block name="rscProtoInterface">
       <property name="Extends" value="electricwirerelay" />
+      <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
       <property name="CustomIcon" value="electricwirerelay" />
       <property name="CustomIconTint" value="E0A040" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="1" />
       <property name="RscRole" value="Interface" />
+    </block>
+    <block name="rscProtoTerminal">
+      <property name="Extends" value="electricwirerelay" />
+      <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
+      <property name="CustomIcon" value="electricwirerelay" />
+      <property name="CustomIconTint" value="60D060" />
+      <property name="CreativeMode" value="Player" />
+      <property name="RequiredPower" value="1" />
+      <property name="RscRole" value="Terminal" />
     </block>
   </append>
 </configs>

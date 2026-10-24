@@ -42,6 +42,39 @@ internal static class RoutingTests
 
         FilterTests();
         OrderTests();
+        QueueTests();
+    }
+
+    private static void QueueTests()
+    {
+        var q = new RoundRobinQueue<string, int>();
+        Check(!q.TryDequeue(out _, out _) && q.Count == 0, "An empty queue must dequeue nothing.");
+        q.Enqueue("a", 1);
+        q.Enqueue("a", 2);
+        q.Enqueue("a", 3);
+        q.Enqueue("b", 10);
+        q.Enqueue("c", 20);
+        q.Enqueue("b", 11);
+        Check(q.Count == 6 && q.CountFor("a") == 3 && q.CountFor("b") == 2, "Counts must track per owner.");
+        var order = new System.Collections.Generic.List<string>();
+        while (q.TryDequeue(out var owner, out int item))
+            order.Add(owner + item);
+        Check(string.Join(",", order) == "a1,b10,c20,a2,b11,a3",
+            "Owners must take turns while each owner's requests stay in order.");
+
+        q.Enqueue("a", 1);
+        q.Enqueue("a", 2);
+        q.Enqueue("b", 9);
+        q.TryDequeue(out var first, out int firstItem);
+        q.ReturnToFront(first, firstItem);
+        Check(q.TryDequeue(out var again, out int againItem) && again == "a" && againItem == 1,
+            "A returned request must run next.");
+        q.TryDequeue(out var next, out _);
+        Check(next == "b", "Turn order must continue after a returned request.");
+        q.ReturnToFront("z", 5);
+        Check(q.TryDequeue(out var z, out int zi) && z == "z" && zi == 5, "Returning for a new owner must work.");
+        q.Clear();
+        Check(q.Count == 0 && !q.TryDequeue(out _, out _), "Clear must empty the queue.");
     }
 
     private static void FilterTests()

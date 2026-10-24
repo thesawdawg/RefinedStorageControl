@@ -23,6 +23,10 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
       transfer service, and `rsc net` commands.
     - `Source/Game/Persistence/` — RSC save files (interface settings) and
       the save/removal hooks.
+    - `Source/Game/Blocks/` — `BlockRscNode` (E action for terminals and
+      interfaces; keeps the vanilla powered tile entity).
+    - `Source/Game/UI/` — XUi controllers; layouts live in
+      `Mod/Config/XUi_InGame/`.
     - `Source/Game/Prototypes/` — P0 `rsc proto` commands (dev only).
 - `Tests/` — net48 console harness compiling `Source/**` **except** `Source/Game/`.
   This is the purity check: Core/Storage/Access/Routing must never use game or

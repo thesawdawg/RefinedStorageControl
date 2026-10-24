@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using RefinedStorageControl.Core;
-using RefinedStorageControl.Routing;
-using RefinedStorageControl.Storage;
 
 namespace RefinedStorageControl.Game.Providers
 {
@@ -9,7 +6,7 @@ namespace RefinedStorageControl.Game.Providers
     // is copied; every change is written back to the container and broadcast
     // with SetModified. Only player-placed containers are eligible (PHY-02), so
     // the network never touches unopened or respawning loot.
-    internal sealed class ContainerProvider
+    internal sealed class ContainerProvider : GridEndpoint
     {
         private ContainerProvider(Vector3i position, TileEntityComposite te, TEFeatureStorage storage)
         {
@@ -23,7 +20,8 @@ namespace RefinedStorageControl.Game.Providers
         public TileEntityComposite Te { get; }
         public TEFeatureStorage Storage { get; }
         public long SortKey { get; }
-        public ItemStackGrid Grid => Storage.itemGrid;
+        public override ItemStackGrid Grid => Storage.itemGrid;
+        public override string Label => "container at " + Position;
 
         // The interface whose priority and filter apply; set when the network
         // collects its providers.
@@ -57,72 +55,12 @@ namespace RefinedStorageControl.Game.Providers
             return true;
         }
 
-        public bool CanAccess(PlatformUserIdentifierAbs user) => NativeAccess.CanAccessStorage(Te, user);
+        public override bool CanAccess(PlatformUserIdentifierAbs user) => NativeAccess.CanAccessStorage(Te, user);
 
         // A player has the container open; their client will upload its whole
         // state, so host edits now could be overwritten or duplicate items (A01).
-        public bool InUse => LockManager.Instance.IsLockedServer(Storage);
+        public override bool InUse => LockManager.Instance.IsLockedServer(Storage);
 
-        public bool SlotLocked(int index)
-        {
-            var locks = Grid.SlotLocks;
-            return locks != null && index < locks.Length && locks[index];
-        }
-
-        public static bool IsEmpty(ItemStack stack) => stack == null || stack.IsEmpty();
-
-        public ItemKey? KeyAt(int index)
-        {
-            var stack = Grid[index];
-            return IsEmpty(stack) ? (ItemKey?)null : ItemKeys.FromItemValue(stack.itemValue);
-        }
-
-        public bool Holds(ItemKey key)
-        {
-            for (int i = 0; i < Grid.Length; i++)
-            {
-                var k = KeyAt(i);
-                if (k.HasValue && k.Value.Equals(key))
-                    return true;
-            }
-            return false;
-        }
-
-        public List<StackPlacement.Slot> PlacementSlots()
-        {
-            var slots = new List<StackPlacement.Slot>(Grid.Length);
-            for (int i = 0; i < Grid.Length; i++)
-            {
-                var s = Grid[i];
-                bool locked = SlotLocked(i);
-                slots.Add(IsEmpty(s)
-                    ? new StackPlacement.Slot(null, 0, 0, locked)
-                    : new StackPlacement.Slot(ItemKeys.FromItemValue(s.itemValue), s.count,
-                        s.itemValue.ItemClass?.MaxCount ?? s.count, locked));
-            }
-            return slots;
-        }
-
-        // Applies a plan computed from PlacementSlots() in the same main-thread step.
-        public void Apply(IEnumerable<StackPlacement.Placement> placements, ItemValue item)
-        {
-            foreach (var p in placements)
-            {
-                if (p.IsNewStack)
-                    Grid[p.Index] = new ItemStack(item.Clone(), p.Added);
-                else
-                    Grid[p.Index].count += p.Added;
-            }
-        }
-
-        public void Take(int index, int count)
-        {
-            var stack = Grid[index];
-            stack.count -= count;
-            if (stack.count <= 0)
-                Grid[index] = ItemStack.Empty; // SetItem clears the slot in place
-        }
-
-        public void MarkModified() => Storage.SetModified();
+        public override void MarkModified() => Storage.SetModified();
     }
 }

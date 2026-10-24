@@ -32,6 +32,7 @@ namespace RefinedStorageControl.Game
         {
             Prototypes.ProtoCommands.OnWorldShuttingDown();
             Providers.TransferService.Reset();
+            Providers.TransferQueue.Reset();
             Providers.NetCommands.Reset();
         }
     }

@@ -1,0 +1,10 @@
+<configs>
+  <append xpath="/xui">
+    <window_group name="rscTerminal" close_compass_on_open="true">
+      <window name="windowRscTerminal" />
+    </window_group>
+    <window_group name="rscInterface" close_compass_on_open="true">
+      <window name="windowRscInterface" />
+    </window_group>
+  </append>
+</configs>

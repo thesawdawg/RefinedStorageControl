@@ -13,5 +13,6 @@
     <Reference Include="Assembly-CSharp"><HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManaged)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="LogLibrary"><HintPath>$(GameManaged)\LogLibrary.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="InControl"><HintPath>$(GameManaged)\InControl.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>
