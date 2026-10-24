@@ -247,7 +247,7 @@ def interface(name, accent):
                 else:
                     box(r, "%s_sock%d%d_s" % (name, i, j), (0.03, 0.13, 0.13),
                         (0.455, off_a, 0.47 + off_z), recess_mat(), 0.006)
-    box(r, name + "_topplate", (0.5, 0.5, 0.02), (0, 0, 0.94), accent_mat(accent), 0.006)
+    box(r, name + "_topplate", (0.5, 0.5, 0.02), (0, 0, 0.962), accent_mat(accent), 0.006)  # sits on the cap (top 0.95)
     return r
 
 
@@ -296,7 +296,7 @@ def drive_cabinet(name, accent):
             box(r, "%s_led%d%d" % (name, col, row), (0.05, 0.02, 0.05), (x + 0.085, -0.487, z + 0.035),
                 glow_mat(accent, 3.0), 0.004)
     side_vents(r, name, count=6, z0=0.2, step=0.1, accent=accent)
-    box(r, name + "_topplate", (0.5, 0.5, 0.02), (0, 0, 0.94), accent_mat(accent), 0.006)
+    box(r, name + "_topplate", (0.5, 0.5, 0.02), (0, 0, 0.962), accent_mat(accent), 0.006)  # sits on the cap (top 0.95)
     box(r, name + "_trim", (0.76, 0.035, 0.03), (0, -0.47, 0.88), glow_mat(accent, 2.5), 0.004)
     return r
 
