@@ -104,6 +104,12 @@ Evidence: `[RSC proto]` lines in the game's `output_log_client__2026-10-23__15-5
 - Found and fixed: a never-wired block has no power item, so the terminal threw on refresh; the host's wire tool showed the stock "Power source cannot have a parent connection" text for RSC wire-rule refusals (now shows the RSC reason).
 - The owner reported most of the test guide working; individual priority/filter/persistence results were not logged separately.
 
+## P2 in-game results (October 24, 2026, host)
+
+- Cabinet window, disks as storage, power and tier rules, pickup refusal and destruction rolls reported working. Co-op permission tests not run yet.
+- Found and fixed: the mod's localization file was named `Localization.txt`, but 3.3 only reads `Config/Localization.csv`, so no RSC text had ever loaded (keys such as `rscPromptTerminal` showed instead).
+- Not a bug: RSC blocks keep vanilla powered-block pickup, so **Take** is only offered inside the player's own land claim, like vanilla relays and lights.
+
 ## P0 closure (October 23, 2026)
 
 P0 was closed by the project owner's decision: the core approach (vanilla wire tree as the network, per-device power, host container edits, item-metadata disk identity, host-written station queues) works in game. The checks below were not run and are **deferred to the stage that depends on them**, not dropped:
