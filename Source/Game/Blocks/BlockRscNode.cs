@@ -16,6 +16,24 @@ namespace RefinedStorageControl.Game.Blocks
 
         private BlockActivationCommand[] _commands;
 
+        // The game finds the block behind an aimed-at model through colliders
+        // tagged T_Block. A mod bundle stores tags as indexes into the building
+        // project's tag list, which do not match the game's, so the tag is
+        // set here by name each time the model is activated (pooled models too).
+        private const string BlockTag = "T_Block";
+
+        public override void OnBlockEntityTransformBeforeActivated(WorldBase _world, Vector3i _blockPos,
+            BlockValue _blockValue, BlockEntityData _ebcd)
+        {
+            base.OnBlockEntityTransformBeforeActivated(_world, _blockPos, _blockValue, _ebcd);
+            var root = _ebcd?.transform;
+            if (root == null)
+                return;
+            root.gameObject.tag = BlockTag;
+            foreach (var collider in root.GetComponentsInChildren<UnityEngine.Collider>(true))
+                collider.gameObject.tag = BlockTag;
+        }
+
         public override BlockActivationCommand[] GetBlockActivationCommands(WorldBase _world, BlockValue _blockValue,
             Vector3i _blockPos, EntityAlive _entityFocusing)
         {
