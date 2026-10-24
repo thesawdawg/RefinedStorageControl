@@ -30,6 +30,7 @@ namespace RefinedStorageControl.Game.UI
         private float _refreshIn;
         private string _status = "";
         private string _netError;
+        private bool _errorLogged;
 
         public static void Open(EntityPlayerLocal player, Vector3i pos)
         {
@@ -89,18 +90,31 @@ namespace RefinedStorageControl.Game.UI
         private void Refresh()
         {
             _refreshIn = RefreshSeconds;
-            if (TransferService.TryList(User, _pos, out var entries, out string reason))
+            try
             {
-                _all = entries;
-                _netError = null;
+                if (TransferService.TryList(User, _pos, out var entries, out string reason))
+                {
+                    _all = entries;
+                    _netError = null;
+                }
+                else
+                {
+                    _all = new List<TransferService.Entry>();
+                    _netError = reason;
+                }
+                ApplySearch();
+                ShowBag();
+                _errorLogged = false;
             }
-            else
+            catch (Exception e)
             {
+                // Keep the window usable and log once, not on every refresh.
                 _all = new List<TransferService.Entry>();
-                _netError = reason;
+                _netError = "terminal error (see log)";
+                if (!_errorLogged)
+                    RscLog.Error("terminal refresh failed: " + e);
+                _errorLogged = true;
             }
-            ApplySearch();
-            ShowBag();
         }
 
         private void ApplySearch()

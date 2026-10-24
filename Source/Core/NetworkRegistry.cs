@@ -144,6 +144,8 @@ namespace RefinedStorageControl.Core
             return status.State == NodeState.Connected && status.Controller == controller;
         }
 
+        public bool Contains(NodeId id) => _nodes.ContainsKey(id);
+
         public NodeKind? KindOf(NodeId id) =>
             _nodes.TryGetValue(id, out var node) ? node.Kind : (NodeKind?)null;
 

@@ -478,6 +478,11 @@ namespace RefinedStorageControl.Game.Prototypes
             }
             var registry = Topology.ServerTopology.Snapshot();
             var id = Topology.RscBlocks.ToNodeId(pos);
+            if (!registry.Contains(id))
+            {
+                Say("net " + pos + " role=" + kind + " state=NotWired (no wire has touched this block yet)");
+                return;
+            }
             var status = registry.GetStatus(id);
             var item = Topology.ServerTopology.PowerItemAt(pos);
             var line = "net " + pos + " role=" + kind

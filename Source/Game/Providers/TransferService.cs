@@ -237,7 +237,15 @@ namespace RefinedStorageControl.Game.Providers
                 return false;
             }
             var registry = ServerTopology.Snapshot();
-            var status = registry.GetStatus(RscBlocks.ToNodeId(nodePos));
+            var nodeId = RscBlocks.ToNodeId(nodePos);
+            // A powered block only joins the wire graph once the wire tool first
+            // connects it, so a never-wired block is simply not in the registry.
+            if (!registry.Contains(nodeId))
+            {
+                reason = "not wired to a storage controller";
+                return false;
+            }
+            var status = registry.GetStatus(nodeId);
             if (status.State != NodeState.Connected || !status.Controller.HasValue)
             {
                 reason = status.State == NodeState.Conflict

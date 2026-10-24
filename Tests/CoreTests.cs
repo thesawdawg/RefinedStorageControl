@@ -17,6 +17,8 @@ internal static class CoreTests
         net.AddNode(iface, NodeKind.Interface);
         net.AddNode(terminal, NodeKind.Terminal);
         Check(net.NodeCount == 4, "Registry must track node count.");
+        Check(net.Contains(hub) && !net.Contains(new NodeId(99)),
+            "Contains must report registered nodes only (unwired blocks are never registered).");
 
         Reject(() => net.AddNode(controller, NodeKind.Terminal), "Duplicate node ids must be rejected.");
         Reject<ArgumentException>(() => net.AddNode(new NodeId(9), NodeKind.Controller),
