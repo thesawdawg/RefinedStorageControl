@@ -302,6 +302,13 @@ Choices made while building the container provider and transfer service. They fo
 - **First terminal UI (host only):** pressing E on a terminal opens a window with the network's items (search, pages; left click takes a stack, right click takes one) above the player's backpack (click a slot to store it; Store matching / Store all). Pressing E on an interface opens its priority and filter settings (filter built from the held item). Blocks use the `BlockRscNode` class, which keeps the vanilla powered tile entity.
 - **Console front end:** `rsc net list/deposit/withdraw` drives the service until the terminal UI exists. Endpoints are containers, not player inventory; player-inventory transfers come with the terminal's network packages.
 
+### Terminal view options (October 23, 2026)
+
+- **Categories:** All, Resources, Weapons & Ammo, Tools, Food & Medical, Armor & Clothing, Building, Science & Books, Other, mapped from the vanilla item `Group` values (crafting-menu variants such as `CF…`, `TC…`, `adv…` included). The category button skips categories with nothing in them.
+- **Sort:** Name, Count or Quality, with name then quality as tie-breakers so the order is stable between refreshes.
+- **Favorites:** per player, stored on that player's machine (`<user data>/RefinedStorageControl/favorites.txt`) and shared across worlds. A favorite covers every variant of an item and always sorts first. Toggle "Mark favorites", then click items; click the button again to go back to taking items.
+- The category and sort choice persist while the game runs; the logic lives in the pure `Source/View/` module with tests.
+
 ### Co-op clients (October 23, 2026)
 
 - A client's backpack is owned by the client, so items travel in packages. **Store:** the client removes one stack from its backpack and sends it; the server deposits what fits and returns the rest, which goes back to the same slot when free. **Take:** the client asks only for what fits in its backpack; the server removes it from the network and sends it; anything that no longer fits is dropped at the player's feet.

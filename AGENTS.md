@@ -16,6 +16,8 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
   - `Source/Access/` — owner + allowlist ACLs (pure).
   - `Source/Routing/` — transfer budget, stack placement, provider ordering
     and filters (pure).
+  - `Source/View/` — terminal search, categories, sorting and favorites
+    ordering (pure).
   - `Source/Game/` — the only layer allowed to touch game/Unity types
     (`IModApi` entry point, `Log`, console commands).
     - `Source/Game/Topology/` — wire tree projection and wire rules.

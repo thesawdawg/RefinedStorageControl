@@ -18,6 +18,20 @@ namespace RefinedStorageControl.Game.UI
 
         public int Index { get; set; }
 
+        private bool _favorite;
+
+        public bool Favorite
+        {
+            get => _favorite;
+            set
+            {
+                if (_favorite == value)
+                    return;
+                _favorite = value;
+                IsDirty = true;
+            }
+        }
+
         public event Action<XUiC_RscCell, int> Clicked;
 
         public override void Init()
@@ -81,6 +95,9 @@ namespace RefinedStorageControl.Game.UI
                     return true;
                 case "locked":
                     value = _locked.ToString();
+                    return true;
+                case "isfavorite":
+                    value = (_favorite && HasItem).ToString();
                     return true;
                 case "bgcolor":
                     value = _locked ? "60,45,30,255" : "40,40,40,255";
