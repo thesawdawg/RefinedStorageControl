@@ -22,8 +22,35 @@ namespace RefinedStorageControl.Game.Topology
                 return true;
             RscLog.Warning("wire rejected: " + eval.reason
                 + " (" + __instance.ToWorldPos() + " -> " + parent.ToWorldPos() + ")");
+            WireRejectionTooltip.Remember(eval.tooltipKey);
             __result = false;
             return false;
+        }
+    }
+
+    // After CanHaveParent fails, the wire tool shows the stock "ttCantHaveParent"
+    // text ("Power source cannot have a parent connection"), which hides why an
+    // RSC wire was refused. Swap in our reason when it is shown the same frame.
+    [HarmonyPatch(typeof(GameManager), nameof(GameManager.ShowTooltip),
+        new[] { typeof(EntityPlayerLocal), typeof(string), typeof(bool), typeof(bool), typeof(float) })]
+    internal static class WireRejectionTooltip
+    {
+        private static string _pendingKey;
+        private static int _frame = -1;
+
+        public static void Remember(string tooltipKey)
+        {
+            _pendingKey = tooltipKey;
+            _frame = Time.frameCount;
+        }
+
+        private static void Prefix(ref string _text)
+        {
+            if (_pendingKey == null)
+                return;
+            if (_frame == Time.frameCount && _text == Localization.Get("ttCantHaveParent"))
+                _text = Localization.Get(_pendingKey);
+            _pendingKey = null;
         }
     }
 
