@@ -13,16 +13,19 @@ namespace RefinedStorageControl.Routing
     {
         public readonly struct Slot
         {
-            public Slot(ItemKey? key, int count, int maxCount)
+            public Slot(ItemKey? key, int count, int maxCount, bool locked = false)
             {
                 Key = key;
                 Count = count;
                 MaxCount = maxCount;
+                Locked = locked;
             }
 
             public ItemKey? Key { get; } // null = empty slot
             public int Count { get; }
             public int MaxCount { get; }
+            public bool Locked { get; } // player slot lock: never receives items
+
         }
 
         public readonly struct Placement
@@ -51,7 +54,7 @@ namespace RefinedStorageControl.Routing
             for (int i = 0; i < slots.Count && remaining > 0; i++)
             {
                 var slot = slots[i];
-                if (!slot.Key.HasValue || !slot.Key.Value.Equals(key.Value))
+                if (slot.Locked || !slot.Key.HasValue || !slot.Key.Value.Equals(key.Value))
                     continue;
                 int room = slot.MaxCount - slot.Count;
                 if (room <= 0)
@@ -63,7 +66,7 @@ namespace RefinedStorageControl.Routing
 
             for (int i = 0; i < slots.Count && remaining > 0; i++)
             {
-                if (slots[i].Key.HasValue)
+                if (slots[i].Locked || slots[i].Key.HasValue)
                     continue;
                 int room = slots[i].MaxCount > 0
                     ? Math.Min(slots[i].MaxCount, sourceMaxCount)

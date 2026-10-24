@@ -53,6 +53,12 @@ internal static class StackPlacementTests
             new StackPlacement.Slot(null, 0, 0), new StackPlacement.Slot(key, 0, 5)
         }, adds) == 0 && Adds(adds) == "1:3f",
             "An empty identical-key slot must still count as a top-up target.");
+        Check(StackPlacement.Plan(key, 4, 5, new[]
+        {
+            new StackPlacement.Slot(key, 1, 5, locked: true), new StackPlacement.Slot(null, 0, 0, locked: true),
+            new StackPlacement.Slot(null, 0, 0)
+        }, adds) == 0 && Adds(adds) == "2:4t",
+            "Locked slots must never receive items, matching or empty.");
 
         static string Adds(List<StackPlacement.Placement> list)
         {

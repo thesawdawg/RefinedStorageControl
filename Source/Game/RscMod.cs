@@ -25,6 +25,8 @@ namespace RefinedStorageControl.Game
         private static void OnWorldShuttingDown(ref ModEvents.SWorldShuttingDownData data)
         {
             Prototypes.ProtoCommands.OnWorldShuttingDown();
+            Providers.TransferService.Reset();
+            Providers.NetCommands.Reset();
         }
     }
 }

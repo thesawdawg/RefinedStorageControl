@@ -288,6 +288,17 @@ Accepted by the project owner after the P0 in-game run. SPECS.md carries the res
 - **F11 - Priorities and input:** the product priority order above is approved. v1 targets keyboard and mouse; gamepad is not promised, and any navigation the vanilla UI gives for free is a bonus. Revisit after v1.
 - **F12 - Transfer budget:** one transfer is one move out of one source slot, up to a full stack, whatever the count. Deposit matching counts each stack moved. The simple controller allows 2 transfers/second (configurable), shared by everyone on the network; players are served round-robin; crafting and internal moves (P3) use the same budget with player requests first. The advanced controller has no gameplay limit, only a configurable per-network technical cap, starting at 20 transfers/second, finalized by the P4 benchmark. Rationale: easy to explain, keeps the simple tier a real progression step, and the advanced tier cannot stall the server.
 
+## P1 implementation notes (October 23, 2026)
+
+Choices made while building the container provider and transfer service. They follow the accepted decisions; change them here if they turn out wrong in play.
+
+- **Which containers an interface serves:** every container in the six blocks touching the interface (multi-block containers resolve to their parent block). A container touching two interfaces counts once. Priority and filters are per interface, so all containers on one interface share them.
+- **Eligible containers:** only player-placed containers (`TileEntityComposite.PlayerPlaced`). This keeps the network away from unopened loot and from loot that respawns when a touched world container is emptied. Workstations are excluded; they get their own adapters in P3.
+- **Player slot locks** are respected: a locked slot is never filled or emptied by the network.
+- **Withdraw size:** one request moves at most one stack. Each container slot it draws from is one transfer; on the simple tier a request may stop early at the budget and report it.
+- **Not yet configurable:** priority and filters use the defaults (50, no filter) until the RSC node save file exists. Round-robin scheduling is deferred to the terminal request queue; for now a request that finds the budget used is rejected with the wait time.
+- **Console front end:** `rsc net list/deposit/withdraw` drives the service until the terminal UI exists. Endpoints are containers, not player inventory; player-inventory transfers come with the terminal's network packages.
+
 ## Remaining decisions
 
 These are refinements, not another round of the original 36 questions. Accepted choices above stay accepted.

@@ -1,4 +1,4 @@
-namespace RefinedStorageControl.Game.Prototypes
+namespace RefinedStorageControl.Game.Providers
 {
     // ACCESS-01/02: the host must apply the same permission rule the client
     // applies in TEFeatureStorage.OnBlockActivated, because the server does not
@@ -8,7 +8,7 @@ namespace RefinedStorageControl.Game.Prototypes
         public static bool CanAccessStorage(TileEntityComposite te, PlatformUserIdentifierAbs user)
         {
             var storage = te?.GetFeature<TEFeatureStorage>();
-            if (storage == null)
+            if (storage == null || user == null)
                 return false;
             var lockable = storage.lockFeature;
             var lockpick = storage.lockpickFeature;

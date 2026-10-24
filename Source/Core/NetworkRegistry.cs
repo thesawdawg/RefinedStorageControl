@@ -144,6 +144,9 @@ namespace RefinedStorageControl.Core
             return status.State == NodeState.Connected && status.Controller == controller;
         }
 
+        public NodeKind? KindOf(NodeId id) =>
+            _nodes.TryGetValue(id, out var node) ? node.Kind : (NodeKind?)null;
+
         public ControllerTier? TierOf(NodeId controller)
         {
             return _nodes.TryGetValue(controller, out var node) && node.Kind == NodeKind.Controller

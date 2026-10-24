@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace RefinedStorageControl.Routing
 {
-    // PROG-04: one sliding 1-second window of completed transfers, shared by all
-    // users of a controller. Fairness and accounting are intentionally open.
+    // PROG-04/06: one sliding 1-second window of completed transfers, shared by
+    // all users of a controller. One transfer = one move out of one source slot.
     public sealed class TransferBudget
     {
         private readonly Queue<double> _completions = new Queue<double>();
@@ -27,6 +27,13 @@ namespace RefinedStorageControl.Routing
                 return false;
             _completions.Enqueue(now);
             return true;
+        }
+
+        public int Remaining(double nowSeconds)
+        {
+            double now = Clamp(nowSeconds);
+            Prune(now);
+            return TransfersPerSecond - _completions.Count;
         }
 
         public double NextAvailableAt(double nowSeconds)

@@ -14,9 +14,14 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
   - `Source/Core/` — network topology registry (pure).
   - `Source/Storage/` — disk records and binary serialization (pure).
   - `Source/Access/` — owner + allowlist ACLs (pure).
-  - `Source/Routing/` — transfer budget (pure).
+  - `Source/Routing/` — transfer budget, stack placement, provider ordering
+    and filters (pure).
   - `Source/Game/` — the only layer allowed to touch game/Unity types
     (`IModApi` entry point, `Log`, console commands).
+    - `Source/Game/Topology/` — wire tree projection and wire rules.
+    - `Source/Game/Providers/` — vanilla container providers, the host
+      transfer service, and `rsc net` commands.
+    - `Source/Game/Prototypes/` — P0 `rsc proto` commands (dev only).
 - `Tests/` — net48 console harness compiling `Source/**` **except** `Source/Game/`.
   This is the purity check: Core/Storage/Access/Routing must never use game or
   Unity types. If the test build needs a game reference, the purity boundary
