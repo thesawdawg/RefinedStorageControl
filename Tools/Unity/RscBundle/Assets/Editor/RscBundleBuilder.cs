@@ -15,8 +15,9 @@ using UnityEngine;
 // Each block becomes a prefab named like the block, so blocks.xml can use
 //   <property name="Model" value="#@modfolder:Resources/rsc.unity3d?Assets/RSC/Prefabs/rscTerminal.prefab" />
 // The game's conventions for model blocks: the prefab name must match the
-// asset name; colliders carry the "T_Block" tag so aiming, the E prompt, the
-// wire tool and damage find the block; a child named "WireOffset" is where
+// asset name; the collider sits on the prefab root with the "T_Block" tag so
+// aiming, the E prompt, the wire tool and damage find the block (the game maps
+// a hit back to its block through the root); a child named "WireOffset" is where
 // wires attach. The model stands on y = 0, centred on x/z.
 public static class RscBundleBuilder
 {
@@ -122,11 +123,12 @@ public static class RscBundleBuilder
         model.transform.localPosition -= new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
         bounds = Bounds(model);
 
-        var colliderGo = new GameObject("collider");
-        colliderGo.transform.SetParent(rootGo.transform, false);
-        colliderGo.tag = BlockTag;
-        colliderGo.layer = 0;
-        var box = colliderGo.AddComponent<BoxCollider>();
+        // The collider must sit on the prefab root: a hit is traced back to its
+        // block by comparing the hit transform (or its RootTransformRefParent
+        // target) with the block entity's transform, which is this root.
+        rootGo.tag = BlockTag;
+        rootGo.layer = 0;
+        var box = rootGo.AddComponent<BoxCollider>();
         var size = new Vector3(Mathf.Min(bounds.size.x, 1f), Mathf.Min(bounds.size.y, 1f), Mathf.Min(bounds.size.z, 1f));
         box.size = size;
         box.center = new Vector3(0f, size.y / 2f, 0f);
