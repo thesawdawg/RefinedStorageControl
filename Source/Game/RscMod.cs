@@ -7,6 +7,7 @@ namespace RefinedStorageControl.Game
     {
         public void InitMod(Mod mod)
         {
+            SettingsFile.Load(mod?.Path);
             ModEvents.GameStartDone.RegisterHandler(OnGameStartDone);
             ModEvents.WorldShuttingDown.RegisterHandler(OnWorldShuttingDown);
             try
@@ -28,6 +29,7 @@ namespace RefinedStorageControl.Game
             Persistence.NodeConfigFile.Load();
             Persistence.DiskFile.Load();
             Persistence.CraftFile.Load();
+            RscJournal.Open();
         }
 
         private static void OnWorldShuttingDown(ref ModEvents.SWorldShuttingDownData data)
@@ -36,6 +38,7 @@ namespace RefinedStorageControl.Game
             Providers.TransferService.Reset();
             Providers.TransferQueue.Reset();
             Crafting.CraftService.Reset();
+            RscJournal.Close();
             Providers.NetCommands.Reset();
             Net.ClientSession.Reset();
             Persistence.RemovalHooks.Reset();

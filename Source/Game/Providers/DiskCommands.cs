@@ -10,7 +10,8 @@ namespace RefinedStorageControl.Game.Providers
     {
         public const string Usage =
             "rsc disk list - every disk in this world: id, tier, use, owner, where it is installed\n" +
-            "rsc disk owner <diskIdPrefix> <player name or id> - make that player the disk's owner";
+            "rsc disk owner <diskIdPrefix> <player name or id> - make that player the disk's owner\n" +
+            "rsc disk export <diskIdPrefix|all> - write a readable record of the disk(s) to <save>/RefinedStorageControl/export";
 
         public static void Dispatch(List<string> args)
         {
@@ -54,6 +55,30 @@ namespace RefinedStorageControl.Game.Providers
                 }
                 string error = CabinetService.ForceOwner(args[1], id);
                 Say(error == null ? "disk " + args[1] + " now belongs to " + CabinetService.NameOf(id) : "rejected: " + error);
+                if (error == null)
+                    RscJournal.Add("admin", "disk " + args[1] + " owner set to " + id + " by console");
+                return;
+            }
+            if (verb == "export" && args.Count == 2)
+            {
+                string prefix = args[1].ToLowerInvariant();
+                var disks = store.Disks.Where(d => prefix == "all" || d.Id.ToString("N").StartsWith(prefix)).OrderBy(d => d.Id).ToList();
+                if (disks.Count == 0)
+                {
+                    Say("rejected: no disk id starts with '" + args[1] + "'");
+                    return;
+                }
+                if (prefix != "all" && disks.Count > 1)
+                {
+                    Say("rejected: '" + args[1] + "' matches " + disks.Count + " disks; give more of the id");
+                    return;
+                }
+                foreach (var disk in disks)
+                {
+                    string path = DiskExport.Write(store, disk);
+                    Say("disk " + disk.Id.ToString("N").Substring(0, 8) + " exported to " + path);
+                    RscJournal.Add("admin", "disk " + disk.Id.ToString("N") + " exported");
+                }
                 return;
             }
             SdtdConsole.Instance.Output(Usage);

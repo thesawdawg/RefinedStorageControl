@@ -147,7 +147,7 @@ namespace RefinedStorageControl.Game.Providers
             else if (store.FindCabinet(record.Id).HasValue)
                 return "This disk is already installed somewhere else";
             store.Install(key, slot, record.Id);
-            RscLog.Out("disk " + record.Id.ToString("N") + " (" + record.Tier + ") installed at " + pos + "[" + slot + "] by "
+            RscLog.Event("disk", "disk " + record.Id.ToString("N") + " (" + record.Tier + ") installed at " + pos + "[" + slot + "] by "
                 + NameOf(Id(user)));
             return null;
         }
@@ -161,7 +161,7 @@ namespace RefinedStorageControl.Game.Providers
                 return "Only the owner or players with Configure can take this disk out";
             store.Uninstall(key, slot);
             diskItem = DiskItems.Create(record.Tier, record.Id, store.WorldId);
-            RscLog.Out("disk " + record.Id.ToString("N") + " removed from " + pos + "[" + slot + "] by " + NameOf(Id(user)));
+            RscLog.Event("disk", "disk " + record.Id.ToString("N") + " removed from " + pos + "[" + slot + "] by " + NameOf(Id(user)));
             return null;
         }
 
@@ -188,7 +188,7 @@ namespace RefinedStorageControl.Game.Providers
                 return "Ownership can only go to a player on the list";
             record.Acl.TransferOwnership(Id(user), targetId);
             store.Dirty = true;
-            RscLog.Out("disk " + record.Id.ToString("N") + " ownership " + NameOf(Id(user)) + " -> " + NameOf(targetId));
+            RscLog.Event("disk", "disk " + record.Id.ToString("N") + " ownership " + NameOf(Id(user)) + " -> " + NameOf(targetId));
             return null;
         }
 

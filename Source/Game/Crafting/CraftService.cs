@@ -39,7 +39,8 @@ namespace RefinedStorageControl.Game.Crafting
     // keeps the claimed area active while the job is still queued.
     internal static class CraftService
     {
-        public const int MaxCraftsPerRequest = 999;
+        public static int MaxCraftsPerRequest => Config.RscSettings.Current.MaxCraftsPerRequest;
+        private static double CountdownSeconds => Config.RscSettings.Current.CraftCountdownSeconds;
         private const double PendingCheckSeconds = 0.25;
         private const double JobCheckSeconds = 1.0;
 
@@ -208,7 +209,7 @@ namespace RefinedStorageControl.Game.Crafting
             var chosen = candidates[pick];
             int id = _nextRequestId++;
             Pending.Add(new PendingRequest(id, user.CombinedString, net.Controller.Value, chosen.Station.SortKey,
-                Now + PendingRequests.CountdownSeconds, chosen.Plan, chosen.Materials)
+                Now + CountdownSeconds, chosen.Plan, chosen.Materials)
             {
                 Payload = new Details
                 {
@@ -217,8 +218,8 @@ namespace RefinedStorageControl.Game.Crafting
                 }
             });
             message = "Crafting " + crafts + "x " + Name(recipe) + " at the " + chosen.Station.Label + " in "
-                + (int)PendingRequests.CountdownSeconds + "s";
-            RscLog.Out("craft request " + id + ": " + crafts + "x '" + recipe.GetName() + "' at " + chosen.Station.Position
+                + Math.Ceiling(CountdownSeconds) + "s";
+            RscLog.Event("craft", "craft request " + id + ": " + crafts + "x '" + recipe.GetName() + "' at " + chosen.Station.Position
                 + " for " + user.CombinedString);
             return true;
         }
@@ -234,7 +235,7 @@ namespace RefinedStorageControl.Game.Crafting
             }
             Pending.Remove(r.Id);
             message = "Cancelled " + Describe(r);
-            RscLog.Out("craft request " + r.Id + " cancelled by its player");
+            RscLog.Event("craft", "craft request " + r.Id + " cancelled by its player");
             return true;
         }
 
@@ -347,7 +348,7 @@ namespace RefinedStorageControl.Game.Crafting
         private static void Drop(PendingRequest r, string reason)
         {
             Pending.Remove(r.Id);
-            RscLog.Out("craft request " + r.Id + " cancelled: " + reason);
+            RscLog.Event("craft", "craft request " + r.Id + " cancelled: " + reason);
             Notify(r.Requester, "Crafting cancelled (" + reason + "): " + Describe(r));
         }
 
@@ -360,7 +361,7 @@ namespace RefinedStorageControl.Game.Crafting
             string fail = TryDispatch(r, d, net);
             if (fail == null)
                 return;
-            RscLog.Out("craft request " + r.Id + " not dispatched: " + fail);
+            RscLog.Event("craft", "craft request " + r.Id + " not dispatched: " + fail);
             Notify(r.Requester, "Crafting cancelled (" + fail + "): " + Describe(r));
         }
 
@@ -430,7 +431,7 @@ namespace RefinedStorageControl.Game.Crafting
                 Crafts = d.Crafts
             };
             Jobs.Add(job);
-            RscLog.Out("craft job " + jobId + ": " + d.Crafts + "x '" + job.Recipe + "' queued at " + c.Station.Position
+            RscLog.Event("craft", "craft job " + jobId + ": " + d.Crafts + "x '" + job.Recipe + "' queued at " + c.Station.Position
                 + (job.Claim.HasValue ? " (claim keeps the area active)" : " (no claim: no keepalive)"));
             Notify(r.Requester, "Crafting " + d.Crafts + "x " + Name(recipe) + " at the " + c.Station.Label);
             return null;
@@ -469,6 +470,8 @@ namespace RefinedStorageControl.Game.Crafting
             }
             foreach (var p in touched)
                 p.MarkModified();
+            // PROG-04: each source taken is one transfer on the network budget.
+            TransferService.Charge(net, takes.Count);
             return true;
         }
 
@@ -609,7 +612,7 @@ namespace RefinedStorageControl.Game.Crafting
         private static void Finish(CraftJob job, string reason)
         {
             Jobs.Remove(job.Id);
-            RscLog.Out("craft job " + job.Id + (reason == null ? " finished" : " stopped: " + reason)
+            RscLog.Event("craft", "craft job " + job.Id + (reason == null ? " finished" : " stopped: " + reason)
                 + " (" + job.Completed + " made, " + job.Owed + " left in the station)");
             if (reason != null)
                 Notify(job.Requester, "Crafting " + ItemLabel(job.OutputItem) + " is no longer tracked (" + reason
@@ -631,7 +634,7 @@ namespace RefinedStorageControl.Game.Crafting
             {
                 chunkManager.RemoveChunkObserver(Observers[claim]);
                 Observers.Remove(claim);
-                RscLog.Out("keepalive released for the claim at " + Unpack(claim));
+                RscLog.Event("craft", "keepalive released for the claim at " + Unpack(claim));
             }
             int size = GameStats.GetInt(EnumGameStats.LandClaimSize);
             foreach (var claim in wanted)
@@ -640,7 +643,7 @@ namespace RefinedStorageControl.Game.Crafting
                     var pos = Unpack(claim);
                     Observers[claim] = chunkManager.AddChunkObserver(new Vector3(pos.x, pos.y, pos.z), false,
                         ClaimArea.ObserverRadius(size), -1);
-                    RscLog.Out("keepalive started for the claim at " + pos);
+                    RscLog.Event("craft", "keepalive started for the claim at " + pos);
                 }
         }
 

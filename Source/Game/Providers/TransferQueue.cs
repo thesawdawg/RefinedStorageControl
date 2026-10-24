@@ -66,6 +66,7 @@ namespace RefinedStorageControl.Game.Providers
                 {
                     TransferQueue.Tick();
                     Crafting.CraftService.Tick();
+                    RscJournal.Tick();
                 }
                 else
                     Net.ClientSession.Tick();

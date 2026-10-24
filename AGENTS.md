@@ -21,6 +21,8 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
     ordering (pure).
   - `Source/Crafting/` — ingredient planning, station choice, countdown
     reservations, job records and their file format (pure).
+  - `Source/Config/` — `RscSettings`: Settings.xml values, ranges, defaults (pure).
+  - `Source/Diagnostics/` — the bounded journal buffer (pure).
   - `Source/Game/` — the only layer allowed to touch game/Unity types
     (`IModApi` entry point, `Log`, console commands).
     - `Source/Game/Topology/` — wire tree projection and wire rules.
@@ -43,7 +45,8 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
   This is the purity check: Core/Storage/Access/Routing must never use game or
   Unity types. If the test build needs a game reference, the purity boundary
   has been violated.
-- `Mod/` — deployable mod files (`ModInfo.xml`, future `Config/`).
+- `Mod/` — deployable mod files (`ModInfo.xml`, `Settings.xml`, `README.txt`, `Config/`).
+- `Release/` — release drafts (Nexus page); never packaged or published by the build.
 - `Artifacts/RefinedStorageControl/` — packaged mod produced by the build
   (gitignored).
 

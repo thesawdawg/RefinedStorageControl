@@ -151,7 +151,7 @@ namespace RefinedStorageControl.Game.Providers
                 provider.MarkModified();
             }
             budget.TryConsume(Now);
-            RscLog.Out("deposit " + moved + "x '" + itemName + "' from " + from + " into network "
+            RscLog.Event("transfer", "deposit " + moved + "x '" + itemName + "' from " + from + " into network "
                 + RscBlocks.FromNodeId(net.Controller) + " (" + plans.Count + " providers)");
             return new Result(true, moved, 1, remaining > 0 ? remaining + " did not fit (network full)" : null);
         }
@@ -173,7 +173,7 @@ namespace RefinedStorageControl.Game.Providers
             StackPlacement.Plan(key, result.Moved, taken.ItemClass?.MaxCount ?? result.Moved, dest.PlacementSlots(), adds);
             dest.Apply(adds, taken);
             dest.MarkModified();
-            RscLog.Out("withdraw " + result.Moved + "x '" + Name(taken) + "' from network " + RscBlocks.FromNodeId(net.Controller)
+            RscLog.Event("transfer", "withdraw " + result.Moved + "x '" + Name(taken) + "' from network " + RscBlocks.FromNodeId(net.Controller)
                 + " into " + dest.Label + " (" + result.Transfers + " transfers)");
             return result;
         }
@@ -188,7 +188,7 @@ namespace RefinedStorageControl.Game.Providers
                 return Result.Fail(reason);
             var result = TakeCore(net, user, null, key, count, (sample, maxCount, wanted) => wanted, out taken);
             if (result.Ok)
-                RscLog.Out("withdraw " + result.Moved + "x '" + Name(taken) + "' from network "
+                RscLog.Event("transfer", "withdraw " + result.Moved + "x '" + Name(taken) + "' from network "
                     + RscBlocks.FromNodeId(net.Controller) + " for a remote player (" + result.Transfers + " transfers)");
             return result;
         }
@@ -395,6 +395,14 @@ namespace RefinedStorageControl.Game.Providers
                 return true;
             }
             return false;
+        }
+
+        // Transfers already made in one step outside the normal paths (craft
+        // inputs at dispatch, PROG-04).
+        internal static void Charge(Network net, int transfers)
+        {
+            if (transfers > 0)
+                BudgetFor(net).Charge(Now, transfers);
         }
 
         private static TransferBudget BudgetFor(Network net)

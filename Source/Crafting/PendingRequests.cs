@@ -35,8 +35,6 @@ namespace RefinedStorageControl.Crafting
 
     public sealed class PendingRequests
     {
-        public const double CountdownSeconds = 5.0;
-
         private readonly Dictionary<int, PendingRequest> _byId = new Dictionary<int, PendingRequest>();
 
         public int Count => _byId.Count;

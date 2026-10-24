@@ -61,12 +61,12 @@ P0 investigates crafting and claim activity early to expose architectural constr
 
 ## P4 - v1 verification and release preparation
 
-- [ ] Add structured logs, read-only inspection commands, bounded journal/reconciliation, and owner/admin disk export. **RSC-15; SAVE-02/03**
+- [ ] Add structured logs, read-only inspection commands, bounded journal/reconciliation, and owner/admin disk export. **RSC-15; SAVE-02/03** *(built: journal + `rsc journal`, `rsc settings`, `rsc craft jobs`, `rsc disk export`; reconciliation stays manual from the journal and exports)*
 - [ ] Run all [acceptance scenarios A01-A15](SPECS.md#11-acceptance-scenarios), including permissions, item conservation, failures, and recoverable interruption cases.
 - [ ] Benchmark **24 interfaces, two terminals, two cabinets, three players, one active claimed base**; measure and agree budgets. Verify six-player support separately. **RSC-14; ENV-02/F12**
-- [ ] Finalize original visuals, localization, input bindings, recipes, balance/configuration, and documented limitations. **RSC-03/16/21; F01/F11**
-- [ ] Write install, configuration, backup/export, update, and uninstall instructions; package the mod without game assemblies. **RSC-15/21; ENV-03/05**
-- [ ] Prepare Nexus-ready metadata and artifacts. Upload/publish only as a separate authorized step. **RSC-21**
+- [ ] Finalize original visuals, localization, input bindings, recipes, balance/configuration, and documented limitations. **RSC-03/16/21; F01/F11** *(configuration done: Settings.xml; visuals, final names and balance review still open)*
+- [ ] Write install, configuration, backup/export, update, and uninstall instructions; package the mod without game assemblies. **RSC-15/21; ENV-03/05** *(written: README.md, packaged README.txt; packaging check exists in Build.ps1)*
+- [ ] Prepare Nexus-ready metadata and artifacts. Upload/publish only as a separate authorized step. **RSC-21** *(draft: Release/NEXUS.md; needs final name, version, permissions, screenshots)*
 
 **Exit:** v1 requirements are verified, unresolved release-blocking choices are closed, and the package is ready for review.
 

@@ -29,6 +29,17 @@ namespace RefinedStorageControl.Routing
             return true;
         }
 
+        // Records transfers that already happened as one step (a craft
+        // dispatch taking several sources at once). It may go past the rate;
+        // later requests then wait until the window has room again.
+        public void Charge(double nowSeconds, int transfers)
+        {
+            double now = Clamp(nowSeconds);
+            Prune(now);
+            for (int i = 0; i < transfers; i++)
+                _completions.Enqueue(now);
+        }
+
         public int Remaining(double nowSeconds)
         {
             double now = Clamp(nowSeconds);

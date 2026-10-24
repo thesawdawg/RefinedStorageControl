@@ -105,7 +105,10 @@ namespace RefinedStorageControl.Routing
         public const int SimpleTransfersPerSecond = 2;
         public const int AdvancedTransfersPerSecond = 20;
 
+        // Defaults above; the live values come from Settings.xml.
         public static int For(ControllerTier tier) =>
-            tier == ControllerTier.Advanced ? AdvancedTransfersPerSecond : SimpleTransfersPerSecond;
+            tier == ControllerTier.Advanced
+                ? Config.RscSettings.Current.AdvancedTransfersPerSecond
+                : Config.RscSettings.Current.SimpleTransfersPerSecond;
     }
 }

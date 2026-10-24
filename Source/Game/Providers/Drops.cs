@@ -4,10 +4,10 @@ namespace RefinedStorageControl.Game.Providers
 {
     // Items RSC has to put on the ground: overflow a backpack could not take, and
     // disks from a removed cabinet. The vanilla default lifetime (60 s) is too
-    // short for that, so drops last an hour of real time.
+    // short for that, so drops last an hour of real time (DropLifetimeSeconds).
     internal static class Drops
     {
-        private const float LifetimeSeconds = 3600f;
+        private static float LifetimeSeconds => (float)Config.RscSettings.Current.DropLifetimeSeconds;
 
         public static void Drop(ItemValue item, int count, Vector3 position, int entityId = -1)
         {

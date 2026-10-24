@@ -54,7 +54,7 @@ namespace RefinedStorageControl.Game.Persistence
             var survivors = new List<Guid>();
             var lost = new List<Guid>();
             if (destroyed)
-                DestructionRules.RollDisks(installed, DestructionRules.DiskSurvivalChance, Roll, survivors, lost);
+                DestructionRules.RollDisks(installed, Config.RscSettings.Current.DiskSurvivalChance, Roll, survivors, lost);
             else
                 survivors.AddRange(installed);
             var dropAt = pos.ToVector3() + UnityEngine.Vector3.one * 0.5f;
@@ -66,7 +66,7 @@ namespace RefinedStorageControl.Game.Persistence
             }
             foreach (var id in lost)
                 store.Destroy(id);
-            RscLog.Out("cabinet at " + pos + (destroyed ? " destroyed: " : " removed: ") + survivors.Count
+            RscLog.Event("block", "cabinet at " + pos + (destroyed ? " destroyed: " : " removed: ") + survivors.Count
                 + " disk(s) dropped, " + lost.Count + " lost");
         }
 
@@ -80,13 +80,13 @@ namespace RefinedStorageControl.Game.Persistence
             if (!destroyed)
             {
                 store.Remove(key);
-                RscLog.Out("settings cleared for removed block at " + pos);
+                RscLog.Event("block", "settings cleared for removed block at " + pos);
                 return;
             }
-            if (config.Filter.Mode != FilterMode.None && DestructionRules.LosesFilter(DestructionRules.FilterLossChance, Roll))
+            if (config.Filter.Mode != FilterMode.None && DestructionRules.LosesFilter(Config.RscSettings.Current.FilterLossChance, Roll))
             {
                 store.Set(key, new NodeConfig(config.Priority, ItemFilter.None));
-                RscLog.Out("block at " + pos + " destroyed: filter lost, priority kept for a rebuilt block");
+                RscLog.Event("block", "block at " + pos + " destroyed: filter lost, priority kept for a rebuilt block");
             }
         }
     }
