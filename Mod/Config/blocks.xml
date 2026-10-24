@@ -1,7 +1,8 @@
 <configs>
   <!-- Storage network blocks.
        RequiredPower watts are the F01 defaults (controller 10, interface 2, terminal 3, cabinet 5, hub 0).
-       They reuse the relay model and icon; the icon tint tells them apart.
+       They reuse the relay model for now; icons are rendered by
+       Tools/Art/rsc_art.py into UIAtlases/ItemIconAtlas.
        Class keeps the vanilla powered tile entity and adds the E action for
        terminals and interfaces. -->
   <append xpath="/blocks">
@@ -9,8 +10,7 @@
       <property name="Extends" value="electricwirerelay" />
       <property name="DescriptionKey" value="rscControllerSimpleDesc" />
       <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
-      <property name="CustomIcon" value="electricwirerelay" />
-      <property name="CustomIconTint" value="4A90E2" />
+      <property name="CustomIcon" value="rscControllerSimple" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="0" />
       <property name="RscRole" value="Controller" />
@@ -20,8 +20,7 @@
       <property name="Extends" value="electricwirerelay" />
       <property name="DescriptionKey" value="rscControllerAdvancedDesc" />
       <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
-      <property name="CustomIcon" value="electricwirerelay" />
-      <property name="CustomIconTint" value="2050C0" />
+      <property name="CustomIcon" value="rscControllerAdvanced" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="10" />
       <property name="RscRole" value="Controller" />
@@ -31,8 +30,7 @@
       <property name="Extends" value="electricwirerelay" />
       <property name="DescriptionKey" value="rscHubDesc" />
       <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
-      <property name="CustomIcon" value="electricwirerelay" />
-      <property name="CustomIconTint" value="40C0C0" />
+      <property name="CustomIcon" value="rscHub" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="0" />
       <property name="RscRole" value="Hub" />
@@ -41,8 +39,7 @@
       <property name="Extends" value="electricwirerelay" />
       <property name="DescriptionKey" value="rscInterfaceDesc" />
       <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
-      <property name="CustomIcon" value="electricwirerelay" />
-      <property name="CustomIconTint" value="E0A040" />
+      <property name="CustomIcon" value="rscInterface" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="2" />
       <property name="RscRole" value="Interface" />
@@ -51,8 +48,7 @@
       <property name="Extends" value="electricwirerelay" />
       <property name="DescriptionKey" value="rscTerminalDesc" />
       <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
-      <property name="CustomIcon" value="electricwirerelay" />
-      <property name="CustomIconTint" value="60D060" />
+      <property name="CustomIcon" value="rscTerminal" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="3" />
       <property name="RscRole" value="Terminal" />
@@ -61,8 +57,7 @@
       <property name="Extends" value="electricwirerelay" />
       <property name="DescriptionKey" value="rscDriveCabinetDesc" />
       <property name="Class" value="RefinedStorageControl.Game.Blocks.RscNode, RefinedStorageControl" />
-      <property name="CustomIcon" value="electricwirerelay" />
-      <property name="CustomIconTint" value="C060C0" />
+      <property name="CustomIcon" value="rscDriveCabinet" />
       <property name="CreativeMode" value="Player" />
       <property name="RequiredPower" value="5" />
       <property name="RscRole" value="DriveCabinet" />

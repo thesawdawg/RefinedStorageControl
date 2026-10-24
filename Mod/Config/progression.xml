@@ -22,25 +22,25 @@
 
   <!-- What the Wiring 101 page shows at each level. -->
   <insertBefore xpath="/progression/crafting_skills/crafting_skill[@name='craftingElectrician']/effect_group">
-    <display_entry icon="electricwirerelay" name_key="rscDisplayStorageT1" has_quality="false" unlock_level="25">
+    <display_entry icon="rscTerminal" name_key="rscDisplayStorageT1" has_quality="false" unlock_level="25">
       <unlock_entry item="rscHub,rscInterface,rscTerminal,rscControllerSimple" unlock_tier="1" />
     </display_entry>
-    <display_entry icon="electricwirerelay" name_key="rscDisplayStorageT2" has_quality="false" unlock_level="55">
+    <display_entry icon="rscDriveCabinet" name_key="rscDisplayStorageT2" has_quality="false" unlock_level="55">
       <unlock_entry item="rscControllerAdvanced,rscDriveCabinet,rscDisk1k" unlock_tier="1" />
     </display_entry>
-    <display_entry icon="resourceElectricParts" name_key="rscDisk10k" has_quality="false" unlock_level="60">
+    <display_entry icon="rscDisk10k" name_key="rscDisk10k" has_quality="false" unlock_level="60">
       <unlock_entry item="rscDisk10k" unlock_tier="1" />
     </display_entry>
-    <display_entry icon="resourceElectricParts" name_key="rscDisk100k" has_quality="false" unlock_level="70">
+    <display_entry icon="rscDisk100k" name_key="rscDisk100k" has_quality="false" unlock_level="70">
       <unlock_entry item="rscDisk100k" unlock_tier="1" />
     </display_entry>
-    <display_entry icon="resourceElectricParts" name_key="rscDisk250k" has_quality="false" unlock_level="80">
+    <display_entry icon="rscDisk250k" name_key="rscDisk250k" has_quality="false" unlock_level="80">
       <unlock_entry item="rscDisk250k" unlock_tier="1" />
     </display_entry>
-    <display_entry icon="resourceElectricParts" name_key="rscDisk500k" has_quality="false" unlock_level="90">
+    <display_entry icon="rscDisk500k" name_key="rscDisk500k" has_quality="false" unlock_level="90">
       <unlock_entry item="rscDisk500k" unlock_tier="1" />
     </display_entry>
-    <display_entry icon="resourceElectricParts" name_key="rscDisk1m" has_quality="false" unlock_level="100">
+    <display_entry icon="rscDisk1m" name_key="rscDisk1m" has_quality="false" unlock_level="100">
       <unlock_entry item="rscDisk1m" unlock_tier="1" />
     </display_entry>
   </insertBefore>

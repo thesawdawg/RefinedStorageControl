@@ -1,13 +1,12 @@
 <configs>
-  <!-- Storage disks (DISK-01). Placeholder model/icon: vanilla electrical parts,
-       tinted per tier. Stacknumber 1: each disk carries its own identity in item
+  <!-- Storage disks (DISK-01). Placeholder model: vanilla electrical parts;
+       icons rendered by Tools/Art/rsc_art.py. Stacknumber 1: each disk carries its own identity in item
        metadata (rsc.disk / rsc.world), so disks must never merge.
        Recipes: recipes.xml; Wiring 101 gates (55/60/70/80/90/100): progression.xml. -->
   <append xpath="/items">
     <item name="rscDisk1k">
       <property name="Extends" value="resourceElectricParts" />
-      <property name="CustomIcon" value="resourceElectricParts" />
-      <property name="CustomIconTint" value="B0B0B0" />
+      <property name="CustomIcon" value="rscDisk1k" />
       <property name="DescriptionKey" value="rscDiskDesc" />
       <property name="Tags" value="rscDisk" />
       <property name="Group" value="Science" />
@@ -19,31 +18,31 @@
     </item>
     <item name="rscDisk10k">
       <property name="Extends" value="rscDisk1k" />
-      <property name="CustomIconTint" value="60C060" />
+      <property name="CustomIcon" value="rscDisk10k" />
       <property name="EconomicValue" value="500" />
       <property name="RscDiskTier" value="K10" />
     </item>
     <item name="rscDisk100k">
       <property name="Extends" value="rscDisk1k" />
-      <property name="CustomIconTint" value="5090E0" />
+      <property name="CustomIcon" value="rscDisk100k" />
       <property name="EconomicValue" value="1200" />
       <property name="RscDiskTier" value="K100" />
     </item>
     <item name="rscDisk250k">
       <property name="Extends" value="rscDisk1k" />
-      <property name="CustomIconTint" value="A060E0" />
+      <property name="CustomIcon" value="rscDisk250k" />
       <property name="EconomicValue" value="2500" />
       <property name="RscDiskTier" value="K250" />
     </item>
     <item name="rscDisk500k">
       <property name="Extends" value="rscDisk1k" />
-      <property name="CustomIconTint" value="E0A040" />
+      <property name="CustomIcon" value="rscDisk500k" />
       <property name="EconomicValue" value="5000" />
       <property name="RscDiskTier" value="K500" />
     </item>
     <item name="rscDisk1m">
       <property name="Extends" value="rscDisk1k" />
-      <property name="CustomIconTint" value="E05050" />
+      <property name="CustomIcon" value="rscDisk1m" />
       <property name="EconomicValue" value="10000" />
       <property name="RscDiskTier" value="M1" />
     </item>
