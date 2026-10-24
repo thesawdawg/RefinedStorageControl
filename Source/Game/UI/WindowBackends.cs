@@ -103,6 +103,133 @@ namespace RefinedStorageControl.Game.UI
         }
     }
 
+    internal interface ICabinetBackend
+    {
+        void Open(Vector3i pos);
+        void Close();
+        void Refresh();
+        CabinetView View { get; }
+        string Status { get; }
+        int Version { get; }
+        void Insert(int bagSlot, int preferredSlot);
+        void Remove(int slot);
+        void SetPermissions(int slot, string playerId, Access.DigitalPermission perms);
+        void Transfer(int slot, string playerId);
+    }
+
+    internal sealed class HostCabinetBackend : ICabinetBackend
+    {
+        private readonly EntityPlayerLocal _player;
+        private Vector3i _pos;
+
+        public HostCabinetBackend(EntityPlayerLocal player) => _player = player;
+
+        private static PlatformUserIdentifierAbs User => Platform.PlatformManager.InternalLocalUserIdentifier;
+
+        public CabinetView View { get; private set; } = new CabinetView();
+        public string Status { get; private set; } = "";
+        public int Version { get; private set; }
+
+        public void Open(Vector3i pos)
+        {
+            _pos = pos;
+            Status = "";
+            Refresh();
+        }
+
+        public void Close()
+        {
+        }
+
+        public void Refresh()
+        {
+            View = CabinetService.BuildView(User, _pos);
+            Version++;
+        }
+
+        public void Insert(int bagSlot, int preferredSlot)
+        {
+            var bag = new BagEndpoint(_player);
+            if (bagSlot < 0 || bagSlot >= bag.Grid.Length || GridEndpoint.IsEmpty(bag.Grid[bagSlot]))
+                return;
+            var item = bag.Grid[bagSlot].itemValue.Clone();
+            // Validate before touching the backpack; the service only fails before
+            // it changes anything, so the item stays put on refusal.
+            string error = CabinetService.InsertDisk(User, _pos, preferredSlot, item, out int slot);
+            if (error == null)
+            {
+                bag.Take(bagSlot, 1);
+                bag.MarkModified();
+            }
+            Finish(error ?? "Disk inserted in slot " + (slot + 1));
+        }
+
+        public void Remove(int slot)
+        {
+            string error = CabinetService.RemoveDisk(User, _pos, slot, out var item);
+            if (error == null)
+            {
+                int left = new BagEndpoint(_player).Insert(item, 1);
+                if (left > 0)
+                    Drops.Drop(item, left, _player.GetPosition(), _player.entityId);
+            }
+            Finish(error ?? "Disk removed");
+        }
+
+        public void SetPermissions(int slot, string playerId, Access.DigitalPermission perms) =>
+            Finish(CabinetService.SetPermissions(User, _pos, slot, playerId, perms) ?? "");
+
+        public void Transfer(int slot, string playerId) =>
+            Finish(CabinetService.TransferOwnership(User, _pos, slot, playerId) ?? "Ownership transferred");
+
+        private void Finish(string status)
+        {
+            Status = status;
+            Refresh();
+        }
+    }
+
+    internal sealed class ClientCabinetBackend : ICabinetBackend
+    {
+        private readonly EntityPlayerLocal _player;
+
+        public ClientCabinetBackend(EntityPlayerLocal player) => _player = player;
+
+        public CabinetView View => ClientSession.Cabinet;
+        public string Status => ClientSession.CabinetStatus;
+        public int Version => ClientSession.CabinetVersion;
+
+        public void Open(Vector3i pos) => ClientSession.OpenCabinet(pos);
+        public void Close() => ClientSession.CloseCabinet();
+        public void Refresh() => ClientSession.SendCabinet(CabinetAction.Query);
+
+        public void Insert(int bagSlot, int preferredSlot)
+        {
+            var bag = new BagEndpoint(_player);
+            if (bagSlot < 0 || bagSlot >= bag.Grid.Length || GridEndpoint.IsEmpty(bag.Grid[bagSlot]))
+                return;
+            if (!DiskItems.TryGetTier(bag.Grid[bagSlot].itemValue, out _))
+            {
+                ClientSession.CabinetStatus = "That is not a storage disk";
+                return;
+            }
+            // The disk travels to the server; a refusal sends it straight back.
+            var item = bag.Grid[bagSlot].itemValue.Clone();
+            bag.Take(bagSlot, 1);
+            bag.MarkModified();
+            ClientSession.CabinetStatus = "";
+            ClientSession.SendCabinet(CabinetAction.Insert, preferredSlot, item: item);
+        }
+
+        public void Remove(int slot) => ClientSession.SendCabinet(CabinetAction.Remove, slot);
+
+        public void SetPermissions(int slot, string playerId, Access.DigitalPermission perms) =>
+            ClientSession.SendCabinet(CabinetAction.SetPermissions, slot, playerId, perms);
+
+        public void Transfer(int slot, string playerId) =>
+            ClientSession.SendCabinet(CabinetAction.Transfer, slot, playerId);
+    }
+
     internal interface IInterfaceBackend
     {
         void Open(Vector3i pos);

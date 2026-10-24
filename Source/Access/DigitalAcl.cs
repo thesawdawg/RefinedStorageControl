@@ -37,8 +37,9 @@ namespace RefinedStorageControl.Access
 
         public void Set(string actingPlayerId, string targetPlayerId, DigitalPermission perms)
         {
-            if (!HasOwner || !string.Equals(actingPlayerId, OwnerId, StringComparison.Ordinal))
-                throw new InvalidOperationException("Only the owner may change the allowlist.");
+            // ACCESS-04: Configure includes editing the allowlist.
+            if (!HasOwner || !Has(actingPlayerId, DigitalPermission.Configure))
+                throw new InvalidOperationException("Only the owner or a player with Configure may change the allowlist.");
             if (string.IsNullOrEmpty(targetPlayerId))
                 throw new ArgumentException("Target player id must not be empty.", nameof(targetPlayerId));
             if (string.Equals(targetPlayerId, OwnerId, StringComparison.Ordinal))

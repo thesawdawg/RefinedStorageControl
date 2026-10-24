@@ -148,8 +148,7 @@ namespace RefinedStorageControl.Game.Net
                     left = bag.Insert(item, left);
                 if (left > 0)
                 {
-                    GameManager.Instance.ItemDropServer(new ItemStack(item.Clone(), left), player.GetPosition(),
-                        Vector3.zero, player.entityId);
+                    Drops.Drop(item, left, player.GetPosition(), player.entityId);
                     message = (message != null ? message + "; " : "") + left + " dropped (backpack full)";
                 }
             }
@@ -202,8 +201,44 @@ namespace RefinedStorageControl.Game.Net
             InterfaceVersion++;
         }
 
+        // Drive cabinet
+        public static Vector3i? CabinetPos { get; private set; }
+        public static CabinetView Cabinet { get; private set; } = new CabinetView();
+        public static string CabinetStatus { get; set; } = "";
+        public static int CabinetVersion { get; private set; }
+
+        public static void OpenCabinet(Vector3i pos)
+        {
+            CabinetPos = pos;
+            Cabinet = new CabinetView { Error = "Loading..." };
+            CabinetStatus = "";
+            CabinetVersion++;
+            SendCabinet(CabinetAction.Query);
+        }
+
+        public static void CloseCabinet() => CabinetPos = null;
+
+        internal static void SendCabinet(CabinetAction action, int slot = -1, string target = null,
+            Access.DigitalPermission perms = Access.DigitalPermission.None, ItemValue item = null)
+        {
+            if (CabinetPos.HasValue)
+                ConnectionManager.Instance.SendToServer(NetPackageManager.GetPackage<NetPackageRscCabinet>()
+                    .Setup(CabinetPos.Value, action, slot, target, perms, item));
+        }
+
+        public static void OnCabinetState(Vector3i pos, string message, CabinetView view)
+        {
+            if (CabinetPos != pos)
+                return;
+            Cabinet = view;
+            if (message != null)
+                CabinetStatus = message;
+            CabinetVersion++;
+        }
+
         public static void Reset()
         {
+            CabinetPos = null;
             TerminalPos = null;
             InterfacePos = null;
             StoreQueue.Clear();

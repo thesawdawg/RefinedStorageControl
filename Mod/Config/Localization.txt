@@ -28,3 +28,11 @@ rscDisk250k,items,Item,,,Storage Disk 250k
 rscDisk500k,items,Item,,,Storage Disk 500k
 rscDisk1m,items,Item,,,Storage Disk 1m
 rscDiskDesc,items,Item,,,"Digital storage for a drive cabinet on a powered storage network. The disk keeps its contents when removed but only works in the world it was first used in."
+rscCabinetTitle,UI,UI,,,Drive Cabinet
+rscRemoveDisk,UI,UI,,,Take disk out
+rscAccess,UI,UI,,,Who can use this disk
+rscRemoveFromList,UI,UI,,,Remove from list
+rscMakeOwner,UI,UI,,,Make owner
+rscAddPlayer,UI,UI,,,Add player
+rscAdd,UI,UI,,,Add
+rscBackpackDisks,UI,UI,,,Backpack (click a disk to insert it)

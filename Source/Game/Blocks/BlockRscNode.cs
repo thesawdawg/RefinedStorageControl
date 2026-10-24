@@ -6,8 +6,8 @@ namespace RefinedStorageControl.Game.Blocks
 {
     // Block class for every RSC node (XML: Class="RefinedStorageControl.Game.Blocks.RscNode,
     // RefinedStorageControl"). It keeps BlockPowered's vanilla tile entity and
-    // power item (P0 finding 2) and only adds an "open" activation for terminals
-    // and interfaces. Host and co-op clients use the same windows; clients
+    // power item (P0 finding 2) and only adds an "open" activation for terminals,
+    // interfaces and drive cabinets. Host and co-op clients use the same windows; clients
     // talk to the server through the RSC network packages.
     [Preserve]
     public class BlockRscNode : BlockPowered
@@ -37,7 +37,7 @@ namespace RefinedStorageControl.Game.Blocks
                 return base.GetActivationText(_world, _blockValue, _blockPos, _entityFocusing);
             string key = player.playerInput.Activate.GetBindingXuiMarkupString()
                 + player.playerInput.PermanentActions.Activate.GetBindingXuiMarkupString();
-            return string.Format(Localization.Get(kind == NodeKind.Terminal ? "rscPromptTerminal" : "rscPromptInterface"),
+            return string.Format(Localization.Get(kind == NodeKind.Interface ? "rscPromptInterface" : "rscPromptTerminal"),
                 key, GetLocalizedBlockName());
         }
 
@@ -48,6 +48,8 @@ namespace RefinedStorageControl.Game.Blocks
                 return base.OnBlockActivated(_commandName, _world, _blockPos, _blockValue, _player);
             if (kind == NodeKind.Terminal)
                 UI.XUiC_RscTerminal.Open(_player, _blockPos);
+            else if (kind == NodeKind.DriveCabinet)
+                UI.XUiC_RscCabinet.Open(_player, _blockPos);
             else
                 UI.XUiC_RscInterface.Open(_player, _blockPos);
             return true;
@@ -56,7 +58,7 @@ namespace RefinedStorageControl.Game.Blocks
         private bool Opens(out NodeKind kind)
         {
             return RscBlocks.TryGetRole(this, out kind, out _)
-                && (kind == NodeKind.Terminal || kind == NodeKind.Interface);
+                && (kind == NodeKind.Terminal || kind == NodeKind.Interface || kind == NodeKind.DriveCabinet);
         }
     }
 }

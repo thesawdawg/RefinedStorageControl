@@ -34,10 +34,11 @@ internal static class AccessTests
             "Combined grants must satisfy combined requirements.");
 
         acl.Set("owner-1", "carol", DigitalPermission.Configure);
-        Reject(() => acl.Set("carol", "dave", DigitalPermission.Deposit),
-            "Configure must not grant allowlist editing.");
+        acl.Set("carol", "dave", DigitalPermission.Deposit);
+        Check(acl.Has("dave", DigitalPermission.Deposit), "Configure must allow editing the allowlist (ACCESS-04).");
+        acl.Set("carol", "dave", DigitalPermission.None);
         Reject(() => acl.Set("alice", "dave", DigitalPermission.Deposit),
-            "Non-owners must not edit the allowlist.");
+            "Players without Configure must not edit the allowlist.");
         Reject(() => acl.Set(null, "dave", DigitalPermission.Deposit),
             "Null actors must not edit the allowlist.");
 

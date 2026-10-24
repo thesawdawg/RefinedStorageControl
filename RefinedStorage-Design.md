@@ -333,6 +333,11 @@ Accepted by the project owner. All numbers are configurable defaults to tune aft
 - **One slot per disk:** the store refuses to install a disk that is already installed anywhere, so a stale copy of a disk item cannot duplicate its contents. Destroyed disks lose their record for good.
 - **Ownership transfer:** the previous owner stays on the allowlist with the default deposit + withdraw.
 - **Shared save handling:** interface settings and disks both use the .tmp/.bak/.unreadable pattern in `RscSaveFile`.
+- **Cabinet window (step 2):** E on a drive cabinet shows its six slots, the selected disk's tier, use, owner and your access, its allowlist with Deposit / Withdraw / Craft / Configure toggles, "Remove from list", "Make owner" (owner only) and "Add player" (known players of this world, default deposit + withdraw), and the backpack (click a disk to insert it into the selected slot or the first free one). Works for the host directly and for co-op clients through `NetPackageRscCabinet` / `NetPackageRscCabinetState`; a refused client insert sends the disk straight back.
+- **Who may do what at a cabinet:** anyone in reach may insert a disk into a free slot; a blank disk becomes the inserter's. Taking a disk out and editing its allowlist need the owner or Configure (ACCESS-04: Configure includes editing the allowlist; the access list now enforces that). Making someone else the owner needs the owner. A cabinet works without power or a network; disks only store items on a powered advanced network (step 3).
+- **Refused disks:** a disk from another world ("data unavailable") or one whose data was destroyed cannot be installed.
+- **Host tools:** `rsc disk list` and `rsc disk owner <diskIdPrefix> <player>`.
+- **Interim removal rule:** until step 4, removing a cabinet block drops every installed disk intact (nothing is stranded). RSC drops last one hour instead of the vanilla 60 seconds.
 
 ## Remaining decisions
 

@@ -99,5 +99,76 @@
       </rect>
     </window>
 
+    <!-- Drive cabinet: six disk slots, the selected disk's access list, and the backpack. -->
+    <window name="windowRscCabinet" width="620" height="746" pos="-310,373" anchor="Center" depth="15" cursor_area="true"
+            controller="RefinedStorageControl.Game.UI.RscCabinet, RefinedStorageControl">
+      <rect name="header" height="43" depth="1">
+        <headerbg />
+        <sprite depth="2" name="windowIcon" style="icon32px" pos="4,-5" sprite="ui_game_symbol_electric_power" />
+        <label style="header.name" text="{title}" width="560" />
+      </rect>
+
+      <rect name="content" pos="0,-46" height="700" depth="1">
+        <sprite depth="0" name="backgroundMain" sprite="menu_empty3px" width="620" height="700" color="[black]" type="sliced" fillcenter="false" />
+        <sprite depth="0" color="[darkGrey]" type="sliced" width="620" height="700" />
+
+        <grid name="cabGrid" pos="10,-8" rows="1" cols="6" cell_width="60" cell_height="60" repeat_content="true" depth="3">
+          <rect controller="RefinedStorageControl.Game.UI.RscCell, RefinedStorageControl" width="58" height="58" on_press="true" tooltip="{tooltip}">
+            <sprite depth="3" name="border" sprite="menu_empty3px" color="[black]" type="sliced" fillcenter="false" width="58" height="58" />
+            <sprite depth="2" name="bg" sprite="menu_empty" color="{bgcolor}" type="sliced" pos="1,-1" width="56" height="56" />
+            <sprite depth="4" name="icon" atlas="ItemIconAtlas" sprite="{itemicon}" color="{itemiconcolor}" pos="29,-28" width="46" height="46" pivot="center" visible="{hasitem}" foregroundlayer="true" />
+            <sprite depth="5" name="quality" sprite="menu_empty" color="{qualitycolor}" type="sliced" pos="3,-52" width="52" height="4" visible="{hasquality}" />
+            <label depth="6" name="count" text="{itemcount}" pos="2,-32" width="54" height="20" justify="right" font_size="20" effect="outline" />
+            <sprite depth="6" name="selected" sprite="menu_empty3px" color="[white]" type="sliced" fillcenter="false" width="58" height="58" visible="{isfavorite}" />
+          </rect>
+        </grid>
+        <simplebutton name="btnRemove" depth="3" pos="384,-38" width="220" height="32" font_size="22" caption_key="rscRemoveDisk" />
+
+        <label depth="3" pos="12,-74" width="596" height="50" font_size="20" text="{slotinfo}" />
+
+        <label depth="3" pos="12,-130" width="300" height="26" font_size="24" text_key="rscAccess" />
+        <rect name="entryRow" pos="8,-160" height="32" depth="3">
+          <simplebutton name="btnEntryPrev" depth="3" pos="0,-16" width="40" height="30" font_size="24" caption="&lt;" visible="{canconfigure}" />
+          <label depth="3" pos="48,-3" width="508" height="26" font_size="22" justify="center" text="{entryline}" />
+          <simplebutton name="btnEntryNext" depth="3" pos="564,-16" width="40" height="30" font_size="24" caption="&gt;" visible="{canconfigure}" />
+        </rect>
+        <rect name="permRow" pos="8,-198" height="32" depth="3">
+          <simplebutton name="btnPermDeposit" depth="3" pos="0,-16" width="146" height="30" font_size="20" caption="{permdeposit}" visible="{hasentry}" />
+          <simplebutton name="btnPermWithdraw" depth="3" pos="152,-16" width="146" height="30" font_size="20" caption="{permwithdraw}" visible="{hasentry}" />
+          <simplebutton name="btnPermCraft" depth="3" pos="304,-16" width="146" height="30" font_size="20" caption="{permcraft}" visible="{hasentry}" />
+          <simplebutton name="btnPermConfigure" depth="3" pos="456,-16" width="148" height="30" font_size="20" caption="{permconfigure}" visible="{hasentry}" />
+        </rect>
+        <rect name="entryActions" pos="8,-236" height="32" depth="3">
+          <simplebutton name="btnEntryRemove" depth="3" pos="0,-16" width="220" height="30" font_size="20" caption_key="rscRemoveFromList" visible="{hasentry}" />
+          <simplebutton name="btnMakeOwner" depth="3" pos="228,-16" width="220" height="30" font_size="20" caption_key="rscMakeOwner" visible="{isowner}" />
+        </rect>
+        <rect name="addRow" pos="8,-274" height="32" depth="3">
+          <label depth="3" pos="0,-3" width="120" height="26" font_size="22" text_key="rscAddPlayer" visible="{canconfigure}" />
+          <simplebutton name="btnCandPrev" depth="3" pos="124,-16" width="40" height="30" font_size="24" caption="&lt;" visible="{canconfigure}" />
+          <label depth="3" pos="170,-3" width="270" height="26" font_size="22" justify="center" text="{candidate}" visible="{canconfigure}" />
+          <simplebutton name="btnCandNext" depth="3" pos="446,-16" width="40" height="30" font_size="24" caption="&gt;" visible="{canconfigure}" />
+          <simplebutton name="btnAdd" depth="3" pos="494,-16" width="110" height="30" font_size="22" caption_key="rscAdd" visible="{canconfigure}" />
+        </rect>
+
+        <label depth="3" pos="10,-318" width="500" height="26" font_size="24" text_key="rscBackpackDisks" />
+        <grid name="bagGrid" pos="10,-348" rows="5" cols="10" cell_width="60" cell_height="60" repeat_content="true" depth="3">
+          <rect controller="RefinedStorageControl.Game.UI.RscCell, RefinedStorageControl" width="58" height="58" on_press="true" tooltip="{tooltip}">
+            <sprite depth="3" name="border" sprite="menu_empty3px" color="[black]" type="sliced" fillcenter="false" width="58" height="58" />
+            <sprite depth="2" name="bg" sprite="menu_empty" color="{bgcolor}" type="sliced" pos="1,-1" width="56" height="56" />
+            <sprite depth="4" name="icon" atlas="ItemIconAtlas" sprite="{itemicon}" color="{itemiconcolor}" pos="29,-28" width="46" height="46" pivot="center" visible="{hasitem}" foregroundlayer="true" />
+            <sprite depth="5" name="quality" sprite="menu_empty" color="{qualitycolor}" type="sliced" pos="3,-52" width="52" height="4" visible="{hasquality}" />
+            <label depth="6" name="count" text="{itemcount}" pos="2,-32" width="54" height="20" justify="right" font_size="20" effect="outline" />
+            <sprite depth="6" name="lock" sprite="ui_game_symbol_lock" pos="40,-2" width="16" height="16" color="[lightGrey]" visible="{locked}" />
+          </rect>
+        </grid>
+        <rect name="bagPaging" pos="8,-656" height="32" depth="3">
+          <simplebutton name="btnBagPrev" depth="3" pos="0,-16" width="40" height="30" font_size="24" caption="&lt;" />
+          <label depth="3" pos="48,-4" width="80" height="26" font_size="22" text="{bagpage}" />
+          <label depth="3" pos="136,-4" width="420" height="26" font_size="22" text="{status}" color="[lightGrey]" />
+          <simplebutton name="btnBagNext" depth="3" pos="562,-16" width="40" height="30" font_size="24" caption="&gt;" />
+        </rect>
+      </rect>
+    </window>
+
   </append>
 </configs>
