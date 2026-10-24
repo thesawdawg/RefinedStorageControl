@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>RefinedStorageControl.Tests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Purity boundary check: pure modules must build without game assemblies. -->
+    <Compile Include="..\Source\**\*.cs" Exclude="..\Source\Game\**;..\Source\bin\**;..\Source\obj\**" />
+  </ItemGroup>
+</Project>

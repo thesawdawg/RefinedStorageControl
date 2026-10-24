@@ -1,0 +1,41 @@
+<configs>
+  <!-- Prototype RSC network blocks (dev-only, CreativeMode Player).
+       RequiredPower watts are placeholders: F01 (power budgets) is open.
+       They reuse the relay model and icon; the icon tint tells them apart. -->
+  <append xpath="/blocks">
+    <block name="rscProtoControllerSimple">
+      <property name="Extends" value="electricwirerelay" />
+      <property name="CustomIcon" value="electricwirerelay" />
+      <property name="CustomIconTint" value="4A90E2" />
+      <property name="CreativeMode" value="Player" />
+      <property name="RequiredPower" value="0" />
+      <property name="RscRole" value="Controller" />
+      <property name="RscTier" value="Simple" />
+    </block>
+    <block name="rscProtoControllerAdvanced">
+      <property name="Extends" value="electricwirerelay" />
+      <property name="CustomIcon" value="electricwirerelay" />
+      <property name="CustomIconTint" value="2050C0" />
+      <property name="CreativeMode" value="Player" />
+      <property name="RequiredPower" value="5" />
+      <property name="RscRole" value="Controller" />
+      <property name="RscTier" value="Advanced" />
+    </block>
+    <block name="rscProtoHub">
+      <property name="Extends" value="electricwirerelay" />
+      <property name="CustomIcon" value="electricwirerelay" />
+      <property name="CustomIconTint" value="40C0C0" />
+      <property name="CreativeMode" value="Player" />
+      <property name="RequiredPower" value="0" />
+      <property name="RscRole" value="Hub" />
+    </block>
+    <block name="rscProtoInterface">
+      <property name="Extends" value="electricwirerelay" />
+      <property name="CustomIcon" value="electricwirerelay" />
+      <property name="CustomIconTint" value="E0A040" />
+      <property name="CreativeMode" value="Player" />
+      <property name="RequiredPower" value="1" />
+      <property name="RscRole" value="Interface" />
+    </block>
+  </append>
+</configs>

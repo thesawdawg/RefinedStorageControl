@@ -5,3 +5,7 @@
 /.vs/
 *.user
 *.suo
+
+# Game-derived investigation dumps and local tools (never commit)
+/Investigation/
+/.tools/

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <Name value="RefinedStorageControl" />
+  <DisplayName value="Refined Storage Control (development)" />
+  <Description value="Wired storage network for centralized access to connected containers and powered digital disks. Requires EAC disabled." />
+  <Author value="Refined Storage Control" />
+  <Version value="0.1.0.0" />
+  <SkipWithAntiCheat value="true" />
+</xml>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>RefinedStorageControl</AssemblyName>
+    <Version>0.1.0-dev</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <GameManaged Condition="'$(GameManaged)' == ''">$(MSBuildThisFileDirectory)..\..\..\7DaysToDie_Data\Managed</GameManaged>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    <Reference Include="Assembly-CSharp"><HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManaged)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="LogLibrary"><HintPath>$(GameManaged)\LogLibrary.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

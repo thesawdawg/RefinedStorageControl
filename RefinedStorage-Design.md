@@ -78,7 +78,7 @@ Confirmed:
 - One controller per network in v1.
 - Wire interactions should behave like vanilla electrical wiring. Wires connected to an advanced RSC network appear blue.
 - Add a **network-hub** block following the wire-relay interaction model to extend connections between network devices.
-- A controller placement that would create a network with two controllers should show a red placement indicator. If placement nevertheless occurs, break the rejected block.
+- ~~A controller placement that would create a network with two controllers should show a red placement indicator. If placement nevertheless occurs, break the rejected block.~~ Superseded by F02 (October 23, 2026): placing a block never creates a wire, so conflicts are prevented at wire time instead.
 
 Recommended model:
 
@@ -87,7 +87,7 @@ Recommended model:
 - A controller grants network membership to connected interfaces, terminals, hubs, and drive cabinets. Data routing and electrical supply are distinct concerns even when their wire interactions resemble one another.
 - On controller removal, surviving storage is not erased; disconnected providers simply become unavailable through that terminal network.
 - Revalidate only affected components on cable changes. A component lacking a controller is disconnected; a component with conflicting controllers is invalid.
-- Validate new wire links as well as new blocks, because two existing controller networks can be joined by wiring. Recommend rejecting the new conflicting wire rather than destroying either established controller. Final conflict behavior and item recovery are F02.
+- Validate new wire links, because two existing controller networks can be joined by wiring. Conflicting wires are rejected; neither controller is destroyed (F02, decided).
 - The reject/break path must run once on the host and cannot duplicate a placed controller or its drop.
 
 ## Storage, routing, permissions, and destruction
@@ -128,7 +128,7 @@ Confirmed digital RBAC baseline: an owner plus an explicit per-player allowlist,
 3. Within equal priority, prefer a provider already holding the matching item.
 4. Otherwise choose the first provider with capacity, in a deterministic order.
 
-Every attached storage interface needs a configurable priority field. Drive priority is also needed to implement the requested shared routing policy. Recommend a stable node identifier as the tie-breaker. Default priority, filter direction, and extraction ordering remain F03.
+Every attached storage interface needs a configurable priority field. Drive priority is also needed to implement the requested shared routing policy. Default priority, tie-breaker, filter direction, and extraction ordering are decided under F03 (October 23, 2026).
 
 Rejected or excess items remain at the source. No automatic disposal is included in v1. Different-quality equipment must not merge into a single indistinguishable entry.
 
@@ -231,7 +231,7 @@ Recommended starting tools, accepted in principle by the user:
 - An owner/admin disk-export path and versioned save migrations before public release.
 - Focused automated tests for routing, item identity, throttling, job transitions, and serialization; in-game tests for the native integrations.
 
-Recommended priority order, awaiting F11: inventory correctness and current access rules; dependable centralized storage; clear UI; modular maintainability; progression balance; automation breadth. Safety checks are part of a working storage feature, not an optional polish pass.
+Product priority order (approved October 23, 2026, F11): inventory correctness and current access rules; dependable centralized storage; clear UI; modular maintainability; progression balance; automation breadth. Safety checks are part of a working storage feature, not an optional polish pass.
 
 ## Implementation milestones
 
@@ -249,12 +249,12 @@ P0 establishes crafting and residency feasibility early even though P1 centers o
 ## TODO register
 
 - [ ] **RSC-01 (release blocker for disks):** implement the confirmed owner-plus-explicit-player-allowlist RBAC with separate deposit/withdraw/craft/configure permissions; finish ownership transfer, offline identities, and default-deny behavior when lifecycle policy is unresolved.
-- [ ] **RSC-02:** add priority 0-100 configuration to every storage interface and drive provider; define defaults and filter direction.
+- [ ] **RSC-02:** add priority 0-100 configuration (default 50) and deposit-only allow/block filters to every storage interface and drive provider (F03 decided).
 - [ ] **RSC-03:** confirm exact Advanced Engineering and Wiring 101 unlock table, recipes, and player-facing progression text.
 - [ ] **RSC-04:** prototype vanilla-style data wires without requiring power for Simple Storage Control, advanced blue appearance, and relay-like network-hub.
-- [ ] **RSC-05:** handle duplicate controllers at preview, placement, and wire-join time without destroying established networks or duplicating drops.
+- [ ] **RSC-05:** reject wires that would join two controllers (host and remote-client paths); put any two-controller network that still arises into a Conflict state (F02 decided).
 - [ ] **RSC-06:** prototype native permission checks and per-viewer indexing for all eligible vanilla container types.
-- [ ] **RSC-07:** implement the shared configurable two-stack-transfer budget, bulk-operation accounting, and fair requests.
+- [ ] **RSC-07:** implement the simple-tier two-transfers/second budget with round-robin fairness and player-first scheduling, and the advanced-tier technical cap (F12 decided).
 - [ ] **RSC-08:** implement portable disk identity, exact item serialization, capacities, versioning, and same-world versus cross-world policy.
 - [ ] **RSC-09:** decide and implement survival probabilities and exactly-once cleanup/drop behavior for destroyed media and interface upgrades.
 - [ ] **RSC-10:** define watts per device, connection limits, and power propagation; preserve dispatched native jobs during outages and suspend advanced network output collection until power returns.
@@ -263,20 +263,36 @@ P0 establishes crafting and residency feasibility early even though P1 centers o
 - [ ] **RSC-13:** prototype job-scoped claimed-area activity, update coverage, ownership/claim changes, cleanup, and restart reconstruction.
 - [ ] **RSC-14:** measure the selected small-base profile and test six-player correctness separately.
 - [ ] **RSC-15:** implement diagnostic commands, bounded journal, disk export, and development-world recovery procedure.
-- [ ] **RSC-16:** confirm keyboard/mouse versus gamepad support; the prior hardware-controller question was answered as a network core block.
+- [ ] **RSC-16:** build the terminal for keyboard/mouse; gamepad is not promised for v1 (F11 decided).
 - [ ] **RSC-17 (v2):** design minimal creator-bound patterns with persisted latest-known stats and offline behavior.
 - [ ] **RSC-18 (v2):** design crafter tiers and clarify standalone execution versus connected-workbench requirements.
 - [ ] **RSC-19 (v2):** design full cancellation, dependency preview, job UI, and source lookup.
 - [ ] **RSC-20 (v2):** scope vehicle adapters, wireless, and more complex networks independently.
 - [ ] **RSC-21:** prepare original assets, metadata, installation instructions, and a package for eventual Nexus distribution.
 
+## Decisions from P0 findings (October 19, 2026)
+
+These follow the code-reading findings in [P0-FINDINGS.md](P0-FINDINGS.md).
+
+- **Unlocked containers:** follow native access exactly. Any network user can reach an unlocked container, as they could in person. Rationale: ACCESS-01 says to follow native access, and a stricter rule would invent a second permission system for physical storage.
+- **Crash guarantee (SAVE-02):** accepted. State is consistent after a clean save or exit. After a crash, physical containers (saved with chunks) and RSC data (our own file) each revert to their own last save, so recent physical/digital moves may be lost or duplicated. Rationale: the game offers no shared transaction. Mitigation: save RSC data right after `World.Save` and keep the bounded journal.
+- **Residency:** keep job-scoped claim loading even if native workstation catch-up is confirmed. Rationale: outputs are collected promptly, and players see current state.
+
+## Decisions for P1 (October 23, 2026)
+
+Accepted by the project owner after the P0 in-game run. SPECS.md carries the resulting requirements.
+
+- **Wiring rules (P0 follow-up):** only a controller may have a vanilla parent (generator, battery, relay). Every other RSC block may only be wired from an RSC block, and RSC blocks may only have RSC children. Rationale: the network stays a clean, storage-only branch of the wire tree, it never becomes a power-distribution path for vanilla devices, and blue wires mean exactly one thing.
+- **F02 - Network conflicts:** reject any wire that would put two controllers on one network, on both the host and the remote-client package path (already prototyped). Re-wiring a branch to another network is allowed when the result has at most one controller; access is rechecked on the next transfer (NET-05). The placement indicator and break-the-controller rule are dropped, because placement never creates a wire. Safety net: if a two-controller network still appears (old save, multiplayer race), both controllers enter a Conflict state that blocks storage access until a wire is removed; nothing is destroyed or dropped. Rationale: no block or item loss, one rule, matches the prototype.
+- **F03 - Routing:** priority 0-100, default 50, lower preferred. Deposits go to the lowest number first; within equal priority, a provider already holding the exact item wins; remaining ties use a fixed node-position order. Filters (allow list or block list per interface) control deposits only; withdrawals see every accessible provider. Withdrawals take from the highest number (least preferred) first, with the same fixed tie order. Rationale: predictable, familiar to Refined Storage players, empties overflow first, and avoids "visible but not withdrawable" items.
+- **F11 - Priorities and input:** the product priority order above is approved. v1 targets keyboard and mouse; gamepad is not promised, and any navigation the vanilla UI gives for free is a bonus. Revisit after v1.
+- **F12 - Transfer budget:** one transfer is one move out of one source slot, up to a full stack, whatever the count. Deposit matching counts each stack moved. The simple controller allows 2 transfers/second (configurable), shared by everyone on the network; players are served round-robin; crafting and internal moves (P3) use the same budget with player requests first. The advanced controller has no gameplay limit, only a configurable per-network technical cap, starting at 20 transfers/second, finalized by the P4 benchmark. Rationale: easy to explain, keeps the simple tier a real progression step, and the advanced tier cannot stall the server.
+
 ## Remaining decisions
 
 These are refinements, not another round of the original 36 questions. Accepted choices above stay accepted.
 
 - **F01 - Balance table:** approve or change proposed magazine gates (simple components 25; advanced components 55; disks 55/60/70/80/90/100), cabinet slots, device power costs, and disk/interface survival chances.
-- **F02 - Network conflicts:** should a wire joining two existing controller networks be rejected? Should a forcibly placed duplicate controller drop itself intact when broken?
-- **F03 - Routing:** approve default priority 50, lower-first ordering, matching-item preference only within equal priority, stable ties, and filters controlling insertion; specify whether filters must also hide/block withdrawal.
 - **F04 - Media:** may a disk move between separate save worlds? May a cabinet be picked up while loaded? Decide ownership transfer when a teammate inserts or removes a disk.
 - **F05 - Manual crafting:** use the requesting player's stats in v1, and who receives crafting XP? Output destination is decided: return to accessible network storage, with safe station-output fallback when no eligible capacity is available.
 - **F06 - Queueing:** choose a station with space and the shortest queue, or fill one station before choosing another? Should new terminal jobs append behind manual station jobs? Cancel an undispatched countdown if its player disconnects?
@@ -284,7 +300,6 @@ These are refinements, not another round of the original 36 questions. Accepted 
 - **F08 - Creator stats for v2:** persistent progression only, or temporary buffs too? Who receives XP? What happens if the creator's saved profile becomes unavailable?
 - **F09 - Crafter tiers:** are increasing pattern slots and dispatch concurrency sufficient, or is a multiblock desired? What work may a standalone crafter perform while preserving the connected-workbench requirement?
 - **F10 - Claims:** must all linked devices/stations be within the controller's claim? What happens to accepted work when that claim/controller is removed? Would a claim be required only for unattended crafting or for all network use?
-- **F11 - Priorities and input:** approve the recommended product-priority order; clarify whether gamepad input is needed for the initial PC release.
 
 ## Acceptance checklist
 

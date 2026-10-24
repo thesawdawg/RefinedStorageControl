@@ -1,0 +1,49 @@
+using System;
+using System.Collections.Generic;
+
+namespace RefinedStorageControl.Routing
+{
+    // PROG-04: one sliding 1-second window of completed transfers, shared by all
+    // users of a controller. Fairness and accounting are intentionally open.
+    public sealed class TransferBudget
+    {
+        private readonly Queue<double> _completions = new Queue<double>();
+        private double _last = double.NegativeInfinity;
+
+        public TransferBudget(int transfersPerSecond = 2)
+        {
+            if (transfersPerSecond <= 0)
+                throw new ArgumentOutOfRangeException(nameof(transfersPerSecond), transfersPerSecond, "Rate must be positive.");
+            TransfersPerSecond = transfersPerSecond;
+        }
+
+        public int TransfersPerSecond { get; }
+
+        public bool TryConsume(double nowSeconds)
+        {
+            double now = Clamp(nowSeconds);
+            Prune(now);
+            if (_completions.Count >= TransfersPerSecond)
+                return false;
+            _completions.Enqueue(now);
+            return true;
+        }
+
+        public double NextAvailableAt(double nowSeconds)
+        {
+            double now = Clamp(nowSeconds);
+            Prune(now);
+            return _completions.Count < TransfersPerSecond ? now : _completions.Peek() + 1.0;
+        }
+
+        // Clock-backwards guard: a timestamp earlier than anything already seen is
+        // clamped up to the latest seen time, never granting extra transfers.
+        private double Clamp(double nowSeconds) => _last = Math.Max(_last, nowSeconds);
+
+        private void Prune(double now)
+        {
+            while (_completions.Count > 0 && _completions.Peek() <= now - 1.0)
+                _completions.Dequeue();
+        }
+    }
+}
