@@ -56,7 +56,7 @@ namespace RefinedStorageControl.Game.Topology
             }
             var sender = __instance.Sender;
             if (sender != null && _world.GetEntity(sender.entityId) is EntityPlayer player)
-                GameManager.ShowTooltipMP(player, Localization.Get("rscWireConflict"), "ui_denied");
+                GameManager.ShowTooltipMP(player, Localization.Get(eval.tooltipKey), "ui_denied");
             return false;
         }
     }

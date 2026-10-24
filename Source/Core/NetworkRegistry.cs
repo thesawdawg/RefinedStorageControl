@@ -5,9 +5,10 @@ using System.Linq;
 namespace RefinedStorageControl.Core
 {
     // Topology for a Refined Storage network. Links form undirected components; a
-    // component is usable only while it contains exactly one controller. Conflict
-    // policy is intentionally open (F02): the registry reports conflicts but never
-    // resolves them. Queries BFS over adjacency on demand; scale target ~30 nodes.
+    // component is usable only while it contains exactly one controller. New links
+    // that would join two controllers are rejected (NET-04); a component that still
+    // ends up with several controllers reports Conflict and serves no members until
+    // a link is removed. Queries BFS over adjacency on demand; scale target ~30 nodes.
     public sealed class NetworkRegistry
     {
         private sealed class Node
@@ -55,20 +56,44 @@ namespace RefinedStorageControl.Core
             return CountControllers(merged) > 1 ? LinkCheck.ControllerConflict : LinkCheck.Ok;
         }
 
-        // Placement preview (NET-04): would a new node of this kind linked to the
-        // given existing nodes merge a component with more than one controller?
-        public LinkCheck EvaluateNodeWithLinks(NodeKind kind, IEnumerable<NodeId> links)
+        // Wire-tool re-parenting (NET-04): a wire tree node has one parent, so a
+        // new wire detaches child (and its subtree) from oldParent before joining
+        // newParent. Moving a branch is allowed when the result has at most one
+        // controller. The registry is left unchanged.
+        public LinkCheck EvaluateReparent(NodeId child, NodeId? oldParent, NodeId newParent)
         {
-            var merged = new HashSet<NodeId>();
-            if (links != null)
-                foreach (var id in links)
+            if (!_nodes.ContainsKey(child) || !_nodes.ContainsKey(newParent))
+                return LinkCheck.UnknownNode;
+            bool detach = oldParent.HasValue && oldParent.Value != newParent
+                && _nodes.ContainsKey(oldParent.Value) && _links[child].Contains(oldParent.Value);
+            if (detach)
+            {
+                _links[child].Remove(oldParent.Value);
+                _links[oldParent.Value].Remove(child);
+            }
+            try
+            {
+                return EvaluateLink(child, newParent);
+            }
+            finally
+            {
+                if (detach)
                 {
-                    if (!_nodes.ContainsKey(id))
-                        return LinkCheck.UnknownNode;
-                    merged.UnionWith(ComponentOf(id));
+                    _links[child].Add(oldParent.Value);
+                    _links[oldParent.Value].Add(child);
                 }
-            int controllers = CountControllers(merged) + (kind == NodeKind.Controller ? 1 : 0);
-            return controllers > 1 ? LinkCheck.ControllerConflict : LinkCheck.Ok;
+            }
+        }
+
+        // NET-06: only a controller may hang off vanilla wiring, and RSC blocks
+        // only feed RSC blocks. A null kind means a vanilla (non-RSC) block.
+        public static LinkCheck EvaluateWireKinds(NodeKind? child, NodeKind? parent)
+        {
+            if (parent.HasValue && !child.HasValue)
+                return LinkCheck.VanillaChild;
+            if (child.HasValue && !parent.HasValue && child.Value != NodeKind.Controller)
+                return LinkCheck.VanillaParent;
+            return LinkCheck.Ok;
         }
 
         public void Link(NodeId a, NodeId b)

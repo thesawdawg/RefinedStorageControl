@@ -4,3 +4,5 @@ rscProtoControllerAdvanced,blocks,Block,,,RSC Controller (Advanced - dev)
 rscProtoHub,blocks,Block,,,RSC Hub (dev)
 rscProtoInterface,blocks,Block,,,RSC Interface (dev)
 rscWireConflict,ui,UI,,,Would join two storage controllers
+rscWireVanillaParent,ui,UI,,,Only a storage controller can connect to power wiring
+rscWireVanillaChild,ui,UI,,,Storage blocks cannot power other devices

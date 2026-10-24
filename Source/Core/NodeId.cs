@@ -19,7 +19,7 @@ namespace RefinedStorageControl.Core
 
     public enum ControllerTier { Simple, Advanced }
 
-    public enum LinkCheck { Ok, UnknownNode, SelfLink, AlreadyLinked, ControllerConflict }
+    public enum LinkCheck { Ok, UnknownNode, SelfLink, AlreadyLinked, ControllerConflict, VanillaParent, VanillaChild }
 
     public enum NodeState { Connected, Disconnected, Conflict }
 

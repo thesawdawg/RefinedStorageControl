@@ -54,16 +54,21 @@ internal static class CoreTests
         Check(net.EvaluateLink(other, hub) == LinkCheck.ControllerConflict && net.GetStatus(other).Controller == other,
             "A rejected link must leave the topology unchanged.");
 
-        Check(net.EvaluateNodeWithLinks(NodeKind.Controller, new[] { hub }) == LinkCheck.ControllerConflict,
-            "Placing a controller on an existing network must report ControllerConflict.");
-        Check(net.EvaluateNodeWithLinks(NodeKind.Interface, new NodeId[] { hub, other }) == LinkCheck.ControllerConflict,
-            "Bridging two controller networks must report ControllerConflict.");
-        Check(net.EvaluateNodeWithLinks(NodeKind.Interface, new[] { hub }) == LinkCheck.Ok,
-            "Joining a single network must be allowed.");
-        Check(net.EvaluateNodeWithLinks(NodeKind.Interface, new[] { new NodeId(77) }) == LinkCheck.UnknownNode,
-            "Placement previews must report unknown nodes.");
-        Check(net.EvaluateNodeWithLinks(NodeKind.Interface, new NodeId[0]) == LinkCheck.Ok,
-            "An unlinked placement must be allowed.");
+        // Re-parenting: hub -> iface -> terminal is a branch under controller.
+        Check(net.EvaluateReparent(iface, hub, other) == LinkCheck.Ok,
+            "Moving a controller-free branch to another network must be allowed.");
+        Check(net.EvaluateLink(other, hub) == LinkCheck.ControllerConflict && net.IsConnected(terminal, controller),
+            "Evaluating a re-parent must leave the topology unchanged.");
+        Check(net.EvaluateReparent(iface, null, other) == LinkCheck.ControllerConflict,
+            "A second parent without detaching must still report ControllerConflict.");
+        Check(net.EvaluateReparent(hub, controller, other) == LinkCheck.Ok,
+            "Detaching a branch from its controller lets it join another network.");
+        Check(net.EvaluateReparent(controller, null, other) == LinkCheck.ControllerConflict,
+            "Wiring one controller under another must report ControllerConflict.");
+        Check(net.EvaluateReparent(iface, hub, new NodeId(77)) == LinkCheck.UnknownNode,
+            "Re-parenting to an unknown node must report UnknownNode.");
+
+        WireKindTests();
 
         net.Unlink(hub, iface);
         Check(net.GetStatus(hub).State == NodeState.Connected && net.GetStatus(iface).State == NodeState.Disconnected
@@ -100,7 +105,28 @@ internal static class CoreTests
             "Conflicted components must fail the host recheck.");
         Check(save.TierOf(c2) == ControllerTier.Advanced, "Tiers must survive a conflicted restore.");
 
+        save.Unlink(c2, spine);
+        Check(save.IsConnected(spine, c1) && save.GetStatus(c2).State == NodeState.Connected
+            && save.Members(c1).Count == 2,
+            "Removing a wire must clear Conflict and restore single-controller service.");
+
         PositionKeyTests();
+    }
+
+    private static void WireKindTests()
+    {
+        Check(NetworkRegistry.EvaluateWireKinds(NodeKind.Controller, null) == LinkCheck.Ok,
+            "A controller may be wired from vanilla power.");
+        foreach (var kind in new[] { NodeKind.Hub, NodeKind.Interface, NodeKind.Terminal, NodeKind.DriveCabinet })
+            Check(NetworkRegistry.EvaluateWireKinds(kind, null) == LinkCheck.VanillaParent,
+                "Non-controller storage blocks must not be wired from vanilla power: " + kind);
+        foreach (var kind in new[] { NodeKind.Controller, NodeKind.Hub, NodeKind.Interface })
+            Check(NetworkRegistry.EvaluateWireKinds(null, kind) == LinkCheck.VanillaChild,
+                "Storage blocks must not feed vanilla devices: " + kind);
+        Check(NetworkRegistry.EvaluateWireKinds(NodeKind.Interface, NodeKind.Hub) == LinkCheck.Ok,
+            "Storage-to-storage wires must pass the kind rule.");
+        Check(NetworkRegistry.EvaluateWireKinds(null, null) == LinkCheck.Ok,
+            "Vanilla-to-vanilla wires are not RSC's concern.");
     }
 
     private static void PositionKeyTests()
