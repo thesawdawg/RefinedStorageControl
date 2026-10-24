@@ -10,7 +10,6 @@ rscProtoTerminal,blocks,Block,,,RSC Terminal (dev)
 blockcommand_rsc_open,UI,UI,,,Open
 rscPromptTerminal,UI,UI,,,{0} Open {1}
 rscPromptInterface,UI,UI,,,{0} Configure {1}
-rscClientUnsupported,UI,UI,,,Storage windows currently work for the host only
 rscTerminalTitle,UI,UI,,,Storage Terminal
 rscInterfaceTitle,UI,UI,,,Storage Interface
 rscDepositMatching,UI,UI,,,Store matching

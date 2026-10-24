@@ -14,6 +14,7 @@ namespace RefinedStorageControl.Game.UI
         private int _count;
         private bool _locked;
         private bool _visible = true;
+        private int _type;
 
         public int Index { get; set; }
 
@@ -29,6 +30,10 @@ namespace RefinedStorageControl.Game.UI
 
         public void Set(ItemValue item, int count, bool locked, bool visible = true)
         {
+            if (ReferenceEquals(item, _item) && count == _count && locked == _locked && visible == _visible
+                && (item == null || item.type == _type))
+                return; // unchanged; skip the binding refresh
+            _type = item?.type ?? 0;
             _item = item;
             _count = count;
             _locked = locked;

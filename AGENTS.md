@@ -25,8 +25,11 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
       the save/removal hooks.
     - `Source/Game/Blocks/` — `BlockRscNode` (E action for terminals and
       interfaces; keeps the vanilla powered tile entity).
-    - `Source/Game/UI/` — XUi controllers; layouts live in
-      `Mod/Config/XUi_InGame/`.
+    - `Source/Game/UI/` — XUi controllers and host/client window backends;
+      layouts live in `Mod/Config/XUi_InGame/`.
+    - `Source/Game/Net/` — co-op network packages and the client session.
+      Write primitives through `(BinaryWriter)_bw`: the game's
+      PooledBinaryWriter has span overloads net48 cannot resolve.
     - `Source/Game/Prototypes/` — P0 `rsc proto` commands (dev only).
 - `Tests/` — net48 console harness compiling `Source/**` **except** `Source/Game/`.
   This is the purity check: Core/Storage/Access/Routing must never use game or

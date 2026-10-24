@@ -62,7 +62,10 @@ namespace RefinedStorageControl.Game.Providers
         {
             try
             {
-                TransferQueue.Tick();
+                if (ConnectionManager.Instance.IsServer)
+                    TransferQueue.Tick();
+                else
+                    Net.ClientSession.Tick();
             }
             catch (System.Exception e)
             {

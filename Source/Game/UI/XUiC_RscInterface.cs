@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefinedStorageControl.Game.Persistence;
-using RefinedStorageControl.Game.Providers;
 using RefinedStorageControl.Routing;
 using UnityEngine.Scripting;
 
 namespace RefinedStorageControl.Game.UI
 {
-    // Interface settings window (ROUTE-02/05, host player): priority buttons,
-    // a filter-mode toggle, and a filter list built from the held item.
+    // Interface settings window (ROUTE-02/05): priority buttons, a filter-mode
+    // toggle, and a filter list built from the held item. The host edits the
+    // settings store directly; co-op clients go through network packages.
     [Preserve]
     public class XUiC_RscInterface : XUiController
     {
@@ -17,7 +16,8 @@ namespace RefinedStorageControl.Game.UI
 
         private static Vector3i _pendingPos;
 
-        private Vector3i _pos;
+        private IInterfaceBackend _backend;
+        private int _seenVersion = -1;
         private string _status = "";
 
         public static void Open(EntityPlayerLocal player, Vector3i pos)
@@ -41,21 +41,32 @@ namespace RefinedStorageControl.Game.UI
         public override void OnOpen()
         {
             base.OnOpen();
-            _pos = _pendingPos;
+            _backend = ConnectionManager.Instance.IsServer
+                ? (IInterfaceBackend)new HostInterfaceBackend()
+                : new ClientInterfaceBackend();
+            _backend.Open(_pendingPos);
             _status = "";
+            _seenVersion = -1;
             RefreshBindings();
         }
 
-        private long Key => Core.PositionKey.Pack(_pos.x, _pos.y, _pos.z);
+        public override void Update(float _dt)
+        {
+            base.Update(_dt);
+            if (_backend != null && _backend.Version != _seenVersion)
+            {
+                _seenVersion = _backend.Version;
+                RefreshBindings();
+            }
+        }
 
-        private NodeConfig Config => NodeConfigFile.Store.Get(Key);
+        private NodeConfig Config => _backend?.Config ?? NodeConfig.Default;
 
         private void AddPriority(int delta)
         {
             int priority = Math.Max(ProviderRouting.MinPriority, Math.Min(ProviderRouting.MaxPriority, Config.Priority + delta));
-            NodeConfigFile.Store.Set(Key, new NodeConfig(priority, Config.Filter));
             _status = "";
-            RefreshBindings();
+            _backend.Apply(new NodeConfig(priority, Config.Filter));
         }
 
         private void CycleMode()
@@ -88,8 +99,8 @@ namespace RefinedStorageControl.Game.UI
 
         private void SetFilter(FilterMode mode, IEnumerable<string> names, string status)
         {
-            NodeConfigFile.Store.Set(Key, new NodeConfig(Config.Priority, new ItemFilter(mode, names)));
             _status = status;
+            _backend.Apply(new NodeConfig(Config.Priority, new ItemFilter(mode, names)));
             RefreshBindings();
         }
 
@@ -114,10 +125,9 @@ namespace RefinedStorageControl.Game.UI
                     value = names.Count == 0 ? "(none)" : string.Join(", ", names);
                     return true;
                 case "containers":
-                    var world = GameManager.Instance.World;
-                    int count = world == null ? 0 : TransferService.ContainersAround(world, _pos).Count;
-                    value = count == 0 ? "No player-placed container is touching this interface"
-                        : "Serves " + count + " container" + (count == 1 ? "" : "s");
+                    int count = _backend?.Containers ?? 0;
+                    value = _backend?.Error ?? (count == 0 ? "No player-placed container is touching this interface"
+                        : "Serves " + count + " container" + (count == 1 ? "" : "s"));
                     return true;
                 case "status":
                     value = _status;

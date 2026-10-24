@@ -98,6 +98,12 @@ Evidence: `[RSC proto]` lines in the game's `output_log_client__2026-10-23__15-5
 - Disk metadata tag is written and read back on a held item (session `16-26-21`).
 - A workbench accepts a queue entry written by the host with native quality and the requester's entity id.
 
+## P1 in-game results (October 23, 2026, host)
+
+- Terminal and interface windows open with E on the host. Withdraw a stack, withdraw one, and backpack stores work through a powered advanced network wired generator -> controller -> storage blocks (session `22-13-37`, no errors).
+- Found and fixed: a never-wired block has no power item, so the terminal threw on refresh; the host's wire tool showed the stock "Power source cannot have a parent connection" text for RSC wire-rule refusals (now shows the RSC reason).
+- The owner reported most of the test guide working; individual priority/filter/persistence results were not logged separately.
+
 ## P0 closure (October 23, 2026)
 
 P0 was closed by the project owner's decision: the core approach (vanilla wire tree as the network, per-device power, host container edits, item-metadata disk identity, host-written station queues) works in game. The checks below were not run and are **deferred to the stage that depends on them**, not dropped:

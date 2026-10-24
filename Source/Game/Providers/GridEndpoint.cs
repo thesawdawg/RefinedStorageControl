@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RefinedStorageControl.Routing;
 using RefinedStorageControl.Storage;
@@ -64,6 +65,45 @@ namespace RefinedStorageControl.Game.Providers
                 else
                     Grid[p.Index].count += p.Added;
             }
+        }
+
+        // How many of this exact item fit, filling matching stacks and any number
+        // of empty slots.
+        public int RoomFor(ItemKey key, int maxCount)
+        {
+            int room = 0;
+            for (int i = 0; i < Grid.Length; i++)
+            {
+                if (SlotLocked(i))
+                    continue;
+                var k = KeyAt(i);
+                if (!k.HasValue)
+                    room += maxCount;
+                else if (k.Value.Equals(key))
+                    room += Math.Max(0, maxCount - Grid[i].count);
+            }
+            return room;
+        }
+
+        // Puts up to `count` of the item into this grid (matching stacks first,
+        // then empty slots) and returns how many did not fit.
+        public int Insert(ItemValue item, int count)
+        {
+            var key = ItemKeys.FromItemValue(item);
+            int maxCount = item.ItemClass?.MaxCount ?? count;
+            int remaining = count;
+            while (remaining > 0)
+            {
+                var adds = new List<StackPlacement.Placement>();
+                int left = StackPlacement.Plan(key, remaining, maxCount, PlacementSlots(), adds);
+                if (left == remaining)
+                    break;
+                Apply(adds, item);
+                remaining = left;
+            }
+            if (remaining != count)
+                MarkModified();
+            return remaining;
         }
 
         public void Take(int index, int count)

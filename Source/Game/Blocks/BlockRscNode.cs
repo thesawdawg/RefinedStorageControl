@@ -7,8 +7,8 @@ namespace RefinedStorageControl.Game.Blocks
     // Block class for every RSC node (XML: Class="RefinedStorageControl.Game.Blocks.RscNode,
     // RefinedStorageControl"). It keeps BlockPowered's vanilla tile entity and
     // power item (P0 finding 2) and only adds an "open" activation for terminals
-    // and interfaces. The window opens on the host; remote clients need the
-    // network packages that come with co-op terminal support.
+    // and interfaces. Host and co-op clients use the same windows; clients
+    // talk to the server through the RSC network packages.
     [Preserve]
     public class BlockRscNode : BlockPowered
     {
@@ -46,11 +46,6 @@ namespace RefinedStorageControl.Game.Blocks
         {
             if (_commandName != OpenCommand || !Opens(out var kind))
                 return base.OnBlockActivated(_commandName, _world, _blockPos, _blockValue, _player);
-            if (!ConnectionManager.Instance.IsServer)
-            {
-                GameManager.ShowTooltip(_player, Localization.Get("rscClientUnsupported"), string.Empty, "ui_denied");
-                return true;
-            }
             if (kind == NodeKind.Terminal)
                 UI.XUiC_RscTerminal.Open(_player, _blockPos);
             else

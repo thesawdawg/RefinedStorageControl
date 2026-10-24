@@ -6,30 +6,29 @@ using UnityEngine.Scripting;
 
 namespace RefinedStorageControl.Game.UI
 {
-    // Storage terminal window (UI-01/02/03, host player). Top grid: everything
-    // this player can reach through the network, one cell per exact item state;
-    // left click withdraws a stack, right click withdraws one. Bottom grid: the
-    // player's backpack; left click deposits that slot. Deposits go through
-    // TransferQueue so they wait for the transfer budget instead of failing.
+    // Storage terminal window (UI-01/02/03). Top grid: everything this player
+    // can reach through the network, one cell per exact item state; left click
+    // takes a stack, right click takes one. Bottom grid: the player's backpack;
+    // left click stores that slot. The host calls the transfer service directly;
+    // co-op clients go through network packages (see ITerminalBackend).
     [Preserve]
     public class XUiC_RscTerminal : XUiController
     {
         public const string WindowGroup = "rscTerminal";
         private const float RefreshSeconds = 0.5f;
+        private const float ClientRefreshSeconds = 1f;
 
         private static Vector3i _pendingPos;
 
-        private Vector3i _pos;
+        private ITerminalBackend _backend;
         private XUiC_RscCell[] _netCells = new XUiC_RscCell[0];
         private XUiC_RscCell[] _bagCells = new XUiC_RscCell[0];
         private XUiC_TextInput _search;
-        private List<TransferService.Entry> _all = new List<TransferService.Entry>();
         private readonly List<TransferService.Entry> _shown = new List<TransferService.Entry>();
+        private int _seenVersion = -1;
         private int _netPage;
         private int _bagPage;
         private float _refreshIn;
-        private string _status = "";
-        private string _netError;
         private bool _errorLogged;
 
         public static void Open(EntityPlayerLocal player, Vector3i pos)
@@ -54,30 +53,45 @@ namespace RefinedStorageControl.Game.UI
             Button("btnNetNext", () => { if ((_netPage + 1) * _netCells.Length < _shown.Count) _netPage++; ShowNet(); });
             Button("btnBagPrev", () => { _bagPage = Math.Max(0, _bagPage - 1); ShowBag(); });
             Button("btnBagNext", () => { if ((_bagPage + 1) * _bagCells.Length < Bag.Grid.Length) _bagPage++; ShowBag(); });
-            Button("btnDepositAll", () => DepositMany(matchingOnly: false));
-            Button("btnDepositMatching", () => DepositMany(matchingOnly: true));
+            Button("btnDepositAll", () => StoreMany(matchingOnly: false));
+            Button("btnDepositMatching", () => StoreMany(matchingOnly: true));
         }
 
         public override void OnOpen()
         {
             base.OnOpen();
-            _pos = _pendingPos;
+            _backend = ConnectionManager.Instance.IsServer
+                ? (ITerminalBackend)new HostTerminalBackend(Player)
+                : new ClientTerminalBackend();
             _netPage = 0;
             _bagPage = 0;
-            _status = "";
-            _refreshIn = 0f;
-            Refresh();
+            _seenVersion = -1;
+            _refreshIn = RefreshInterval;
+            Guard(() => _backend.Open(_pendingPos));
+            Guard(Sync);
+        }
+
+        public override void OnClose()
+        {
+            base.OnClose();
+            _backend?.Close();
         }
 
         public override void Update(float _dt)
         {
             base.Update(_dt);
-            if (!IsOpen)
+            if (_backend == null || !IsOpen)
                 return;
             _refreshIn -= _dt;
             if (_refreshIn <= 0f)
-                Refresh();
+            {
+                _refreshIn = RefreshInterval;
+                Guard(_backend.Refresh);
+            }
+            Guard(Sync);
         }
+
+        private float RefreshInterval => ConnectionManager.Instance.IsServer ? RefreshSeconds : ClientRefreshSeconds;
 
         private bool IsOpen => xui?.playerUI?.windowManager?.IsWindowOpen(WindowGroup) == true;
 
@@ -85,34 +99,31 @@ namespace RefinedStorageControl.Game.UI
 
         private BagEndpoint Bag => new BagEndpoint(Player);
 
-        private static PlatformUserIdentifierAbs User => Platform.PlatformManager.InternalLocalUserIdentifier;
-
-        private void Refresh()
+        // Runs every frame: network cells change only on new backend data; backpack
+        // cells skip their redraw unless the slot changed.
+        private void Sync()
         {
-            _refreshIn = RefreshSeconds;
+            if (_backend.Version != _seenVersion)
+            {
+                _seenVersion = _backend.Version;
+                ApplySearch();
+            }
+            ShowBag();
+            RefreshBindings();
+        }
+
+        private void Guard(Action action)
+        {
             try
             {
-                if (TransferService.TryList(User, _pos, out var entries, out string reason))
-                {
-                    _all = entries;
-                    _netError = null;
-                }
-                else
-                {
-                    _all = new List<TransferService.Entry>();
-                    _netError = reason;
-                }
-                ApplySearch();
-                ShowBag();
+                action();
                 _errorLogged = false;
             }
             catch (Exception e)
             {
-                // Keep the window usable and log once, not on every refresh.
-                _all = new List<TransferService.Entry>();
-                _netError = "terminal error (see log)";
+                // Keep the window usable and log once, not on every frame.
                 if (!_errorLogged)
-                    RscLog.Error("terminal refresh failed: " + e);
+                    RscLog.Error("terminal window failed: " + e);
                 _errorLogged = true;
             }
         }
@@ -121,7 +132,7 @@ namespace RefinedStorageControl.Game.UI
         {
             string term = _search?.Text?.Trim() ?? "";
             _shown.Clear();
-            foreach (var e in _all)
+            foreach (var e in _backend.Entries)
                 if (term.Length == 0 || Matches(e.Sample, term))
                     _shown.Add(e);
             _shown.Sort((a, b) =>
@@ -152,15 +163,13 @@ namespace RefinedStorageControl.Game.UI
                 else
                     cell.Set(null, 0, false);
             }
-            IsDirty = true;
-            RefreshBindings();
         }
 
         private void ShowBag()
         {
-            var grid = Bag.Grid;
-            int start = _bagPage * _bagCells.Length;
             var bag = Bag;
+            var grid = bag.Grid;
+            int start = _bagPage * _bagCells.Length;
             for (int i = 0; i < _bagCells.Length; i++)
             {
                 int n = start + i;
@@ -175,7 +184,6 @@ namespace RefinedStorageControl.Game.UI
                 else
                     cell.Set(null, 0, false, visible: false);
             }
-            RefreshBindings();
         }
 
         private void NetClicked(XUiC_RscCell cell, int button)
@@ -183,13 +191,8 @@ namespace RefinedStorageControl.Game.UI
             if (cell.Index >= _shown.Count)
                 return;
             var entry = _shown[cell.Index];
-            int count = button == 0 ? entry.Sample.ItemClass.MaxCount : 1;
-            var result = TransferService.Withdraw(User, _pos, entry.Key, count, Bag);
-            _status = result.Ok
-                ? "Took " + result.Moved + " " + entry.Sample.ItemClass.GetLocalizedItemName()
-                  + (result.Reason != null ? " (" + result.Reason + ")" : "")
-                : result.Reason;
-            Refresh();
+            Guard(() => _backend.Take(entry, button == 0 ? entry.Sample.ItemClass.MaxCount : 1));
+            _refreshIn = 0.1f;
         }
 
         private void BagClicked(XUiC_RscCell cell, int button)
@@ -198,32 +201,26 @@ namespace RefinedStorageControl.Game.UI
             if (button != 0 || cell.Index >= bag.Grid.Length || bag.SlotLocked(cell.Index))
                 return;
             var key = bag.KeyAt(cell.Index);
-            if (!key.HasValue)
-                return;
-            TransferQueue.EnqueueDeposit(User, _pos, bag, cell.Index, key.Value);
-            _status = "Storing...";
-            _refreshIn = 0.1f;
+            if (key.HasValue)
+                Guard(() => _backend.Store(new List<(int, ItemKey)> { (cell.Index, key.Value) }));
         }
 
-        private void DepositMany(bool matchingOnly)
+        private void StoreMany(bool matchingOnly)
         {
             var bag = Bag;
             var stored = new HashSet<ItemKey>();
-            foreach (var e in _all)
+            foreach (var e in _backend.Entries)
                 stored.Add(e.Key);
-            int queued = 0;
+            var slots = new List<(int, ItemKey)>();
             for (int i = 0; i < bag.Grid.Length; i++)
             {
                 if (bag.SlotLocked(i))
                     continue;
                 var key = bag.KeyAt(i);
-                if (!key.HasValue || (matchingOnly && !stored.Contains(key.Value)))
-                    continue;
-                TransferQueue.EnqueueDeposit(User, _pos, bag, i, key.Value);
-                queued++;
+                if (key.HasValue && (!matchingOnly || stored.Contains(key.Value)))
+                    slots.Add((i, key.Value));
             }
-            _status = queued == 0 ? "Nothing to store" : "Storing " + queued + " stacks...";
-            _refreshIn = 0.1f;
+            Guard(() => _backend.Store(slots));
         }
 
         public override bool GetBindingValueInternal(ref string value, string bindingName)
@@ -234,8 +231,13 @@ namespace RefinedStorageControl.Game.UI
                     value = Localization.Get("rscTerminalTitle");
                     return true;
                 case "status":
-                    int pending = TransferQueue.PendingFor(User);
-                    value = _netError ?? (pending > 0 ? "Storing... " + pending + " left" : _status);
+                    if (_backend == null)
+                    {
+                        value = "";
+                        return true;
+                    }
+                    int pending = _backend.Pending;
+                    value = _backend.Error ?? (pending > 0 ? "Storing... " + pending + " left" : _backend.Status ?? "");
                     return true;
                 case "netpage":
                     value = (_netPage + 1) + "/" + Math.Max(1, (_shown.Count + _netCells.Length - 1) / Math.Max(1, _netCells.Length))

@@ -299,8 +299,17 @@ Choices made while building the container provider and transfer service. They fo
 - **Interface settings file:** priority and filter are saved per interface in `<save>/RefinedStorageControl/nodes.dat` (versioned, with a `.bak` of the previous good copy), written right after each world save. Unreadable files are renamed with an `.unreadable-<time>` suffix and the world starts with defaults instead of overwriting them. Removing an interface block clears its settings. A container touching several interfaces uses the settings of the first interface in fixed position order.
 - **Configuring:** `rsc net config/priority/filter` on the host console for now; per-player configure permission arrives with the terminal UI. Filter names are exact item names and are validated against the game's item list.
 - **Round-robin scheduling:** bulk and backpack deposits queue one request per source slot; the host drains the queue every frame, players taking turns, at each network's budget rate. Single withdrawals run immediately and report when the budget stopped them.
-- **First terminal UI (host only):** pressing E on a terminal opens a window with the network's items (search, pages; left click takes a stack, right click takes one) above the player's backpack (click a slot to store it; Store matching / Store all). Pressing E on an interface opens its priority and filter settings (filter built from the held item). Remote co-op clients see a "host only" message until the network packages exist. Blocks use the `BlockRscNode` class, which keeps the vanilla powered tile entity.
+- **First terminal UI (host only):** pressing E on a terminal opens a window with the network's items (search, pages; left click takes a stack, right click takes one) above the player's backpack (click a slot to store it; Store matching / Store all). Pressing E on an interface opens its priority and filter settings (filter built from the held item). Blocks use the `BlockRscNode` class, which keeps the vanilla powered tile entity.
 - **Console front end:** `rsc net list/deposit/withdraw` drives the service until the terminal UI exists. Endpoints are containers, not player inventory; player-inventory transfers come with the terminal's network packages.
+
+### Co-op clients (October 23, 2026)
+
+- A client's backpack is owned by the client, so items travel in packages. **Store:** the client removes one stack from its backpack and sends it; the server deposits what fits and returns the rest, which goes back to the same slot when free. **Take:** the client asks only for what fits in its backpack; the server removes it from the network and sends it; anything that no longer fits is dropped at the player's feet.
+- The server re-checks every request: the player must be within 8 blocks of a real terminal or interface, and native container access, in-use and power rules apply as for the host.
+- Each client has one store in flight; a budget refusal returns the stack and retries the same slot after 0.3 s, so clients share the budget roughly in turn. The host's own bulk stores use the round-robin queue.
+- Trust model: like vanilla containers, the server accepts the client's description of the stack it is storing. A modified client could create items; this is the same exposure vanilla co-op already has.
+- Known gap: if a client disconnects while a stack is in flight, that one stack can be lost.
+- Interface settings for clients: the window asks the server for the current settings and sends changes; the server validates item names and ranges and answers with the stored result.
 
 ## Remaining decisions
 

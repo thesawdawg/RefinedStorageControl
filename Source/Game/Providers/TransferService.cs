@@ -108,44 +108,81 @@ namespace RefinedStorageControl.Game.Providers
             var stack = source.Grid[slot];
             if (GridEndpoint.IsEmpty(stack))
                 return Result.Fail("source slot " + slot + " is empty");
+            var result = DepositCore(net, user, source.Grid, stack.itemValue, stack.count, source.Label + "[" + slot + "]");
+            if (result.Ok)
+            {
+                source.Take(slot, result.Moved);
+                source.MarkModified();
+            }
+            return result;
+        }
+
+        // Remote-client deposit (NET packages): the item has already left the
+        // client's backpack; the caller returns count - Moved to the client.
+        public static Result DepositItem(PlatformUserIdentifierAbs user, Vector3i nodePos, ItemValue item, int count)
+        {
+            if (!TryResolveNetwork(nodePos, out var net, out string reason))
+                return Result.Fail(reason);
+            if (item == null || item.IsEmpty() || count <= 0)
+                return Result.Fail("nothing to store");
+            return DepositCore(net, user, null, item, count, "remote backpack");
+        }
+
+        private static Result DepositCore(Network net, PlatformUserIdentifierAbs user, ItemStackGrid exclude,
+            ItemValue item, int count, string from)
+        {
             var budget = BudgetFor(net);
             if (budget.Remaining(Now) <= 0)
                 return Result.Budget(BudgetReason(budget));
-
-            var key = ItemKeys.FromItemValue(stack.itemValue);
-            string itemName = Name(stack.itemValue);
-            int maxCount = stack.itemValue.ItemClass?.MaxCount ?? stack.count;
-            var candidates = Eligible(net, user, source, key, holdsCheck: true, out var infos);
+            var key = ItemKeys.FromItemValue(item);
+            string itemName = Name(item);
+            int maxCount = item.ItemClass?.MaxCount ?? count;
+            var candidates = Eligible(net, user, exclude, key, holdsCheck: true, out var infos);
             if (candidates.Count == 0)
                 return Result.Fail("no accessible storage on the network");
 
-            int remaining = stack.count;
+            int remaining = count;
             var plans = new List<(ContainerProvider provider, List<StackPlacement.Placement> adds)>();
             foreach (int i in ProviderRouting.DepositOrder(infos, itemName))
             {
+                // A stack can exceed one slot's room after top-ups, so keep
+                // planning on the same provider until it stops accepting.
+                var provider = candidates[i];
+                var slots = provider.PlacementSlots();
+                var adds = new List<StackPlacement.Placement>();
+                while (remaining > 0)
+                {
+                    int before = remaining;
+                    var step = new List<StackPlacement.Placement>();
+                    remaining = StackPlacement.Plan(key, remaining, maxCount, slots, step);
+                    if (remaining == before)
+                        break;
+                    foreach (var p in step)
+                    {
+                        adds.Add(p);
+                        var s = slots[p.Index];
+                        slots[p.Index] = new StackPlacement.Slot(key, s.Count + p.Added, maxCount, s.Locked);
+                    }
+                }
+                if (adds.Count > 0)
+                    plans.Add((provider, adds));
                 if (remaining == 0)
                     break;
-                var adds = new List<StackPlacement.Placement>();
-                remaining = StackPlacement.Plan(key, remaining, maxCount, candidates[i].PlacementSlots(), adds);
-                if (adds.Count > 0)
-                    plans.Add((candidates[i], adds));
             }
-            int moved = stack.count - remaining;
+            int moved = count - remaining;
             if (moved == 0)
                 return Result.Fail("no room on the network for '" + itemName + "'");
 
-            var item = stack.itemValue.Clone();
+            var clone = item.Clone();
             foreach (var (provider, adds) in plans)
             {
-                provider.Apply(adds, item);
+                provider.Apply(adds, clone);
                 provider.MarkModified();
             }
-            source.Take(slot, moved);
-            source.MarkModified();
             budget.TryConsume(Now);
-            RscLog.Out("deposit " + moved + "x '" + itemName + "' from " + source.Label + "[" + slot + "] into network "
+            RscLog.Out("deposit " + moved + "x '" + itemName + "' from " + from + " into network "
                 + RscBlocks.FromNodeId(net.Controller) + " (" + plans.Count + " providers)");
-            return new Result(true, moved, 1, remaining > 0 ? remaining + " left in source (network full)" : null);
+            return new Result(true, moved, 1, remaining > 0 ? remaining + " did not fit (network full)" : null);
         }
 
         // Up to one stack of the exact item into the endpoint. Each provider slot
@@ -156,6 +193,39 @@ namespace RefinedStorageControl.Game.Providers
                 return Result.Fail(reason);
             if (!CheckEndpoint(dest, user, out reason))
                 return Result.Fail("destination " + reason);
+            var result = TakeCore(net, user, dest.Grid, key, count,
+                (sample, maxCount, wanted) => wanted - StackPlacement.Plan(key, wanted, maxCount, dest.PlacementSlots(), null),
+                out var taken);
+            if (!result.Ok)
+                return result;
+            var adds = new List<StackPlacement.Placement>();
+            StackPlacement.Plan(key, result.Moved, taken.ItemClass?.MaxCount ?? result.Moved, dest.PlacementSlots(), adds);
+            dest.Apply(adds, taken);
+            dest.MarkModified();
+            RscLog.Out("withdraw " + result.Moved + "x '" + Name(taken) + "' from network " + RscBlocks.FromNodeId(net.Controller)
+                + " into " + dest.Label + " (" + result.Transfers + " transfers)");
+            return result;
+        }
+
+        // Remote-client withdraw: removes up to `count` (capped at one stack and
+        // at what the client reported it can hold) and hands the item back for
+        // the caller to ship to the client.
+        public static Result TakeItem(PlatformUserIdentifierAbs user, Vector3i nodePos, ItemKey key, int count, out ItemValue taken)
+        {
+            taken = null;
+            if (!TryResolveNetwork(nodePos, out var net, out string reason))
+                return Result.Fail(reason);
+            var result = TakeCore(net, user, null, key, count, (sample, maxCount, wanted) => wanted, out taken);
+            if (result.Ok)
+                RscLog.Out("withdraw " + result.Moved + "x '" + Name(taken) + "' from network "
+                    + RscBlocks.FromNodeId(net.Controller) + " for a remote player (" + result.Transfers + " transfers)");
+            return result;
+        }
+
+        private static Result TakeCore(Network net, PlatformUserIdentifierAbs user, ItemStackGrid exclude, ItemKey key,
+            int count, Func<ItemValue, int, int, int> roomFor, out ItemValue taken)
+        {
+            taken = null;
             if (count <= 0)
                 return Result.Fail("count must be positive");
             var budget = BudgetFor(net);
@@ -163,11 +233,10 @@ namespace RefinedStorageControl.Game.Providers
             if (allowance <= 0)
                 return Result.Budget(BudgetReason(budget));
 
-            var candidates = Eligible(net, user, dest, key, holdsCheck: false, out var infos);
+            var candidates = Eligible(net, user, exclude, key, holdsCheck: false, out var infos);
             ItemValue sample = null;
             var sources = new List<(ContainerProvider provider, int slot, int take)>();
             int wanted = count;
-            int maxCount = 0;
             int fit = 0;
             int moved = 0;
             foreach (int i in ProviderRouting.WithdrawOrder(infos))
@@ -185,10 +254,10 @@ namespace RefinedStorageControl.Game.Providers
                     if (sample == null)
                     {
                         sample = p.Grid[s].itemValue.Clone();
-                        maxCount = sample.ItemClass?.MaxCount ?? p.Grid[s].count;
+                        int maxCount = sample.ItemClass?.MaxCount ?? p.Grid[s].count;
                         wanted = Math.Min(wanted, maxCount);
-                        fit = wanted - StackPlacement.Plan(key, wanted, maxCount, dest.PlacementSlots(), null);
-                        if (fit == 0)
+                        fit = roomFor(sample, maxCount, wanted);
+                        if (fit <= 0)
                             return Result.Fail("destination has no room");
                     }
                     int take = Math.Min(p.Grid[s].count, fit - moved);
@@ -199,26 +268,23 @@ namespace RefinedStorageControl.Game.Providers
             if (sample == null)
                 return Result.Fail("item not available on the network");
 
-            foreach (var src in sources)
-                src.provider.Take(src.slot, src.take);
-            var adds = new List<StackPlacement.Placement>();
-            StackPlacement.Plan(key, moved, maxCount, dest.PlacementSlots(), adds);
-            dest.Apply(adds, sample);
-            dest.MarkModified();
             var touched = new HashSet<ContainerProvider>();
             foreach (var src in sources)
-                if (touched.Add(src.provider))
-                    src.provider.MarkModified();
+            {
+                src.provider.Take(src.slot, src.take);
+                touched.Add(src.provider);
+            }
+            foreach (var provider in touched)
+                provider.MarkModified();
             for (int i = 0; i < sources.Count; i++)
                 budget.TryConsume(Now);
 
-            RscLog.Out("withdraw " + moved + "x '" + Name(sample) + "' from network " + RscBlocks.FromNodeId(net.Controller)
-                + " into " + dest.Label + " (" + sources.Count + " transfers)");
+            taken = sample;
             string note = null;
             if (moved < fit)
                 note = sources.Count >= allowance ? "stopped by transfer budget" : "network had only " + moved;
             else if (fit < wanted)
-                note = "destination had room for only " + fit;
+                note = "room for only " + fit;
             return new Result(true, moved, sources.Count, note);
         }
 
@@ -313,14 +379,14 @@ namespace RefinedStorageControl.Game.Providers
         };
 
         // Priority and filter come from the serving interface's saved settings.
-        private static List<ContainerProvider> Eligible(Network net, PlatformUserIdentifierAbs user, GridEndpoint endpoint,
+        private static List<ContainerProvider> Eligible(Network net, PlatformUserIdentifierAbs user, ItemStackGrid exclude,
             ItemKey key, bool holdsCheck, out List<ProviderInfo> infos)
         {
             var eligible = new List<ContainerProvider>();
             infos = new List<ProviderInfo>();
             foreach (var p in net.Providers)
             {
-                if (ReferenceEquals(p.Grid, endpoint.Grid) || !p.CanAccess(user) || p.InUse)
+                if (ReferenceEquals(p.Grid, exclude) || !p.CanAccess(user) || p.InUse)
                     continue;
                 eligible.Add(p);
                 var config = p.Interface.HasValue
