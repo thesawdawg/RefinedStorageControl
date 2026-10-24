@@ -18,7 +18,8 @@ using UnityEngine;
 // asset name; the collider sits on the prefab root with the "T_Block" tag so
 // aiming, the E prompt, the wire tool and damage find the block (the game maps
 // a hit back to its block through the root); a child named "WireOffset" is where
-// wires attach. The model stands on y = 0, centred on x/z.
+// wires attach. The prefab pivot is the block centre: the model stands on
+// y = -0.5 (the block floor), centred on x/z.
 public static class RscBundleBuilder
 {
     private const string BundleName = "rsc.unity3d";
@@ -118,9 +119,13 @@ public static class RscBundleBuilder
             r.receiveShadows = true;
         }
 
-        // Stand on y = 0, centred on x/z, whatever the exporter's pivot.
+        // The game puts a model block's pivot at the block centre for every
+        // rotation (BlockShapeModelEntity.GetRotatedOffset with the default
+        // ModelOffset), so the model stands on the block floor at y = -0.5,
+        // centred on x/z, whatever the exporter's pivot. Taller parts stick
+        // out at the top only.
         var bounds = Bounds(model);
-        model.transform.localPosition -= new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
+        model.transform.localPosition -= new Vector3(bounds.center.x, bounds.min.y + 0.5f, bounds.center.z);
         bounds = Bounds(model);
 
         // The collider must sit on the prefab root: a hit is traced back to its
@@ -131,11 +136,11 @@ public static class RscBundleBuilder
         var box = rootGo.AddComponent<BoxCollider>();
         var size = new Vector3(Mathf.Min(bounds.size.x, 1f), Mathf.Min(bounds.size.y, 1f), Mathf.Min(bounds.size.z, 1f));
         box.size = size;
-        box.center = new Vector3(0f, size.y / 2f, 0f);
+        box.center = new Vector3(0f, size.y / 2f - 0.5f, 0f);
 
         var wire = new GameObject("WireOffset");
         wire.transform.SetParent(rootGo.transform, false);
-        wire.transform.localPosition = new Vector3(0f, Mathf.Min(bounds.max.y, 1f) - 0.03f, 0f);
+        wire.transform.localPosition = new Vector3(0f, Mathf.Min(bounds.max.y, 0.5f) - 0.03f, 0f);
 
         string path = PrefabDir + "/" + name + ".prefab";
         PrefabUtility.SaveAsPrefabAsset(rootGo, path);
