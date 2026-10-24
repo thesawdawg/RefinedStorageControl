@@ -50,12 +50,12 @@ P0 investigates crafting and claim activity early to expose architectural constr
 
 ## P3 - v1 manual crafting
 
-- [ ] Add workbench, forge, and campfire adapters; require a connected workbench for terminal backpack/general crafting. **RSC-11/12; CRAFT-01**
-- [ ] Validate native unlocks, costs, tools, quality, immediate ingredients, and existing forge reserves; leave fueling and reserve maintenance to the player. **RSC-11/12; CRAFT-02/03**
-- [ ] Implement ingredient/queue reservations, five-second pre-dispatch cancellation, and host revalidation before dispatch. **RSC-11; CRAFT-04/06**
-- [ ] Dispatch each request to one station; allow separate requests on separate stations without splitting a request. Resolve stats, XP, queue order, and disconnect/outage behavior. **RSC-11; CRAFT-05/F05-F07**
-- [ ] Return attributable products to currently accessible storage, with safe native-output fallback when full/unavailable. Preserve dispatched native jobs through RSC outages. **RSC-10/11; CRAFT-07/08/PWR-03**
-- [ ] Keep the claimed area active only while accepted native crafting remains; persist/recover jobs and release activity resources correctly. Stop time when the host closes. **RSC-13; CRAFT-09/RUN-01 through RUN-04**
+- [ ] Add workbench, forge, and campfire adapters; require a connected workbench for terminal backpack/general crafting. **RSC-11/12; CRAFT-01** *(built: stations touching an interface; terminal craft mode; awaiting in-game checks)*
+- [ ] Validate native unlocks, costs, tools, quality, immediate ingredients, and existing forge reserves; leave fueling and reserve maintenance to the player. **RSC-11/12; CRAFT-02/03** *(built; awaiting in-game checks)*
+- [ ] Implement ingredient/queue reservations, five-second pre-dispatch cancellation, and host revalidation before dispatch. **RSC-11; CRAFT-04/06** *(built and unit-tested; awaiting in-game checks)*
+- [ ] Dispatch each request to one station; allow separate requests on separate stations without splitting a request. Resolve stats, XP, queue order, and disconnect/outage behavior. **RSC-11; CRAFT-05/F05-F07** *(built per CRAFT-10/11, PWR-05; awaiting in-game checks)*
+- [ ] Return attributable products to currently accessible storage, with safe native-output fallback when full/unavailable. Preserve dispatched native jobs through RSC outages. **RSC-10/11; CRAFT-07/08/PWR-03** *(built: job tags on queue entries; awaiting in-game checks)*
+- [ ] Keep the claimed area active only while accepted native crafting remains; persist/recover jobs and release activity resources correctly. Stop time when the host closes. **RSC-13; CRAFT-09/RUN-01 through RUN-05** *(built: claim observers, jobs.dat; awaiting in-game checks)*
 
 **Exit:** A09-A14 pass for all three station types, including absent players, full output destinations, power loss, and save/restart.
 

@@ -24,6 +24,9 @@ namespace RefinedStorageControl.Game.Providers
         public abstract bool CanView(PlatformUserIdentifierAbs user);
         public abstract bool CanDeposit(PlatformUserIdentifierAbs user);
         public abstract bool CanWithdraw(PlatformUserIdentifierAbs user);
+
+        // May this user's terminal crafting spend items stored here?
+        public abstract bool CanCraft(PlatformUserIdentifierAbs user);
         public abstract bool InUse { get; }
         public abstract bool Holds(ItemKey key);
 
@@ -60,6 +63,7 @@ namespace RefinedStorageControl.Game.Providers
         public override bool CanView(PlatformUserIdentifierAbs user) => _container.CanAccess(user);
         public override bool CanDeposit(PlatformUserIdentifierAbs user) => _container.CanAccess(user);
         public override bool CanWithdraw(PlatformUserIdentifierAbs user) => _container.CanAccess(user);
+        public override bool CanCraft(PlatformUserIdentifierAbs user) => _container.CanAccess(user);
         public override bool InUse => _container.InUse;
         public override bool Holds(ItemKey key) => _container.Holds(key);
 
@@ -154,6 +158,9 @@ namespace RefinedStorageControl.Game.Providers
         public override bool CanView(PlatformUserIdentifierAbs user) => Has(user, DigitalPermission.Withdraw);
         public override bool CanDeposit(PlatformUserIdentifierAbs user) => Has(user, DigitalPermission.Deposit);
         public override bool CanWithdraw(PlatformUserIdentifierAbs user) => Has(user, DigitalPermission.Withdraw);
+
+        // The disk's separate craft permission (ACCESS-03).
+        public override bool CanCraft(PlatformUserIdentifierAbs user) => Has(user, DigitalPermission.Craft);
         public override bool InUse => false;
         public override bool Holds(ItemKey key) => _disk.Count(key) > 0;
 

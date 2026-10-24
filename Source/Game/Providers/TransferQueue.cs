@@ -63,7 +63,10 @@ namespace RefinedStorageControl.Game.Providers
             try
             {
                 if (ConnectionManager.Instance.IsServer)
+                {
                     TransferQueue.Tick();
+                    Crafting.CraftService.Tick();
+                }
                 else
                     Net.ClientSession.Tick();
             }

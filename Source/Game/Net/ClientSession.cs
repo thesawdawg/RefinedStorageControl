@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RefinedStorageControl.Game.Crafting;
 using RefinedStorageControl.Game.Providers;
 using RefinedStorageControl.Routing;
 using RefinedStorageControl.Storage;
@@ -253,8 +254,68 @@ namespace RefinedStorageControl.Game.Net
             CabinetVersion++;
         }
 
+        // Terminal crafting
+        public static List<CraftOption> CraftOptions { get; private set; } = new List<CraftOption>();
+        public static string CraftError { get; private set; }
+        public static int CraftVersion { get; private set; }
+        private static List<CraftPendingView> _craftPending = new List<CraftPendingView>();
+        private static float _craftPendingAt;
+
+        // Countdowns aged by the time since the server sent them.
+        public static List<CraftPendingView> CraftPending
+        {
+            get
+            {
+                float age = Time.time - _craftPendingAt;
+                var list = new List<CraftPendingView>(_craftPending.Count);
+                foreach (var p in _craftPending)
+                    list.Add(new CraftPendingView { Id = p.Id, Item = p.Item, Crafts = p.Crafts, SecondsLeft = Mathf.Max(0f, p.SecondsLeft - age) });
+                return list;
+            }
+        }
+
+        public static void SendCraft(CraftAction action, int recipeIndex = -1, string itemName = null, int crafts = 0, int requestId = 0)
+        {
+            if (!TerminalPos.HasValue)
+                return;
+            if (action == CraftAction.List && CraftOptions.Count == 0)
+                CraftError = "Loading...";
+            ConnectionManager.Instance.SendToServer(NetPackageManager.GetPackage<NetPackageRscCraft>()
+                .Setup(TerminalPos.Value, action, recipeIndex, itemName, crafts, requestId));
+        }
+
+        public static void OnCraftState(Vector3i pos, string error, string message, List<CraftOption> options,
+            List<CraftPendingView> pending)
+        {
+            if (TerminalPos != pos)
+            {
+                // A notice about a request or job while the terminal is closed.
+                var player = Player;
+                if (message != null && player != null)
+                    GameManager.ShowTooltip(player, message);
+                return;
+            }
+            if (options != null)
+            {
+                CraftOptions = options;
+                CraftError = error;
+            }
+            else if (error != null)
+                CraftError = error;
+            if (pending != null)
+            {
+                _craftPending = pending;
+                _craftPendingAt = Time.time;
+            }
+            if (message != null)
+                Status = message;
+            CraftVersion++;
+        }
+
         public static void Reset()
         {
+            CraftOptions = new List<CraftOption>();
+            _craftPending = new List<CraftPendingView>();
             CabinetPos = null;
             KnownCabinets.Clear();
             TerminalPos = null;

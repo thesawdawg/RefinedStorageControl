@@ -15,6 +15,7 @@ namespace RefinedStorageControl.Game
             "rsc version - print assembly and build module version\n" +
             Providers.NetCommands.Usage + "\n" +
             Providers.DiskCommands.Usage + "\n" +
+            Crafting.CraftCommands.Usage + "\n" +
             "rsc proto <look|power|container|move|disk|station|queue|net|observe|unobserve|observers> - P0 prototypes (host only)";
 
         // The game passes only the arguments after the command name
@@ -32,6 +33,9 @@ namespace RefinedStorageControl.Game
                         return;
                     case "disk":
                         Providers.DiskCommands.Dispatch(_params.GetRange(1, _params.Count - 1));
+                        return;
+                    case "craft":
+                        Crafting.CraftCommands.Dispatch(_params.GetRange(1, _params.Count - 1));
                         return;
                     case "net":
                         Providers.NetCommands.Dispatch(_params.GetRange(1, _params.Count - 1), _senderInfo);

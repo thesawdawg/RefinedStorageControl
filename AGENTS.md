@@ -19,17 +19,22 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
     and filters (pure).
   - `Source/View/` — terminal search, categories, sorting and favorites
     ordering (pure).
+  - `Source/Crafting/` — ingredient planning, station choice, countdown
+    reservations, job records and their file format (pure).
   - `Source/Game/` — the only layer allowed to touch game/Unity types
     (`IModApi` entry point, `Log`, console commands).
     - `Source/Game/Topology/` — wire tree projection and wire rules.
     - `Source/Game/Providers/` — vanilla container providers, the host
       transfer service, and `rsc net` commands.
-    - `Source/Game/Persistence/` — RSC save files (`nodes.dat`, `disks.dat`
-      via `RscSaveFile`) and the save/removal hooks.
+    - `Source/Game/Persistence/` — RSC save files (`nodes.dat`, `disks.dat`,
+      `jobs.dat` via `RscSaveFile`) and the save/removal hooks.
     - `Source/Game/Blocks/` — `BlockRscNode` (E action for terminals and
       interfaces; keeps the vanilla powered tile entity).
     - `Source/Game/UI/` — XUi controllers and host/client window backends;
       layouts live in `Mod/Config/XUi_InGame/`.
+    - `Source/Game/Crafting/` — native station adapter, the host crafting
+      service (countdown, dispatch, collection, XP, claim keepalive) and
+      `rsc craft` commands.
     - `Source/Game/Net/` — co-op network packages and the client session.
       Write primitives through `(BinaryWriter)_bw`: the game's
       PooledBinaryWriter has span overloads net48 cannot resolve.

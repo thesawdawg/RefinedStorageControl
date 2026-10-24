@@ -50,6 +50,7 @@ namespace RefinedStorageControl.Game.Persistence
         {
             NodeConfigFile.SaveIfNeeded();
             DiskFile.SaveIfNeeded();
+            CraftFile.SaveIfNeeded();
         }
     }
 }

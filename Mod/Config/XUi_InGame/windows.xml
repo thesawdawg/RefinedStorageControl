@@ -2,7 +2,7 @@
   <append xpath="/windows">
 
     <!-- Storage terminal: network items (top) and the player's backpack (bottom). -->
-    <window name="windowRscTerminal" width="620" height="792" pos="-310,396" anchor="Center" depth="15" cursor_area="true"
+    <window name="windowRscTerminal" width="620" height="864" pos="-310,432" anchor="Center" depth="15" cursor_area="true"
             controller="RefinedStorageControl.Game.UI.RscTerminal, RefinedStorageControl">
       <rect name="header" height="43" depth="1">
         <headerbg />
@@ -10,9 +10,9 @@
         <label style="header.name" text="{title}" width="560" />
       </rect>
 
-      <rect name="content" pos="0,-46" height="746" depth="1">
-        <sprite depth="0" name="backgroundMain" sprite="menu_empty3px" width="620" height="746" color="[black]" type="sliced" fillcenter="false" />
-        <sprite depth="0" color="[darkGrey]" type="sliced" width="620" height="746" />
+      <rect name="content" pos="0,-46" height="818" depth="1">
+        <sprite depth="0" name="backgroundMain" sprite="menu_empty3px" width="620" height="818" color="[black]" type="sliced" fillcenter="false" />
+        <sprite depth="0" color="[darkGrey]" type="sliced" width="620" height="818" />
 
         <rect name="toolbar" pos="8,-6" height="36" depth="2">
           <sprite depth="2" style="icon30px" pos="12,-18" sprite="ui_game_symbol_search" pivot="center" />
@@ -22,9 +22,10 @@
         </rect>
 
         <rect name="viewbar" pos="8,-46" height="36" depth="2">
-          <simplebutton name="btnCategory" depth="3" pos="0,-18" width="220" height="32" font_size="22" caption="{category}" />
-          <simplebutton name="btnSort" depth="3" pos="226,-18" width="170" height="32" font_size="22" caption="{sortmode}" />
-          <simplebutton name="btnFavorites" depth="3" pos="402,-18" width="202" height="32" font_size="22" caption="{favmode}" />
+          <simplebutton name="btnCategory" depth="3" pos="0,-18" width="196" height="32" font_size="22" caption="{category}" />
+          <simplebutton name="btnSort" depth="3" pos="202,-18" width="150" height="32" font_size="22" caption="{sortmode}" />
+          <simplebutton name="btnFavorites" depth="3" pos="358,-18" width="130" height="32" font_size="22" caption="{favmode}" />
+          <simplebutton name="btnMode" depth="3" pos="494,-18" width="110" height="32" font_size="22" caption="{modebtn}" />
         </rect>
 
         <grid name="netGrid" pos="10,-88" rows="4" cols="10" cell_width="60" cell_height="60" repeat_content="true" depth="3">
@@ -44,9 +45,22 @@
           <simplebutton name="btnNetNext" depth="3" pos="562,-16" width="40" height="30" font_size="24" caption="&gt;" />
         </rect>
 
-        <label depth="3" pos="10,-370" width="400" height="26" font_size="24" text_key="rscBackpack" />
+        <rect name="craftInfo" pos="8,-366" height="28" depth="3" visible="{craftmode}">
+          <label depth="3" pos="2,-2" width="600" height="26" font_size="20" text="{craftinfo}" />
+        </rect>
+        <rect name="craftBar" pos="8,-398" height="32" depth="3" visible="{craftmode}">
+          <simplebutton name="btnCraftLess" depth="3" pos="0,-16" width="40" height="30" font_size="24" caption="-" />
+          <label depth="3" pos="44,-4" width="60" height="26" font_size="22" justify="center" text="{craftamount}" />
+          <simplebutton name="btnCraftMore" depth="3" pos="108,-16" width="40" height="30" font_size="24" caption="+" />
+          <simplebutton name="btnCraftMax" depth="3" pos="152,-16" width="70" height="30" font_size="20" caption_key="rscCraftMax" />
+          <simplebutton name="btnCraft" depth="3" pos="228,-16" width="110" height="30" font_size="22" caption_key="rscCraft" />
+          <label depth="3" pos="344,-4" width="176" height="26" font_size="20" text="{craftpending}" color="[lightGrey]" />
+          <simplebutton name="btnCraftCancel" depth="3" pos="524,-16" width="80" height="30" font_size="20" caption_key="rscCraftCancel" visible="{haspending}" />
+        </rect>
 
-        <grid name="bagGrid" pos="10,-400" rows="5" cols="10" cell_width="60" cell_height="60" repeat_content="true" depth="3">
+        <label depth="3" pos="10,-442" width="400" height="26" font_size="24" text_key="rscBackpack" />
+
+        <grid name="bagGrid" pos="10,-472" rows="5" cols="10" cell_width="60" cell_height="60" repeat_content="true" depth="3">
           <rect controller="RefinedStorageControl.Game.UI.RscCell, RefinedStorageControl" width="58" height="58" on_press="true" tooltip="{tooltip}">
             <sprite depth="3" name="border" sprite="menu_empty3px" color="[black]" type="sliced" fillcenter="false" width="58" height="58" />
             <sprite depth="2" name="bg" sprite="menu_empty" color="{bgcolor}" type="sliced" pos="1,-1" width="56" height="56" />
@@ -57,7 +71,7 @@
           </rect>
         </grid>
 
-        <rect name="bagPaging" pos="8,-704" height="32" depth="3">
+        <rect name="bagPaging" pos="8,-776" height="32" depth="3">
           <simplebutton name="btnBagPrev" depth="3" pos="0,-16" width="40" height="30" font_size="24" caption="&lt;" />
           <label depth="3" pos="48,-4" width="80" height="26" font_size="22" text="{bagpage}" />
           <label depth="3" pos="136,-4" width="420" height="26" font_size="22" text="{status}" color="[lightGrey]" />

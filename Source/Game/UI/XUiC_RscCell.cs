@@ -15,6 +15,8 @@ namespace RefinedStorageControl.Game.UI
         private bool _locked;
         private bool _visible = true;
         private int _type;
+        private bool _recipe;   // terminal craft mode: count is crafts possible, shown even at 0
+        private bool _selected;
 
         public int Index { get; set; }
 
@@ -42,15 +44,17 @@ namespace RefinedStorageControl.Game.UI
             IsDirty = true;
         }
 
-        public void Set(ItemValue item, int count, bool locked, bool visible = true)
+        public void Set(ItemValue item, int count, bool locked, bool visible = true, bool recipe = false, bool selected = false)
         {
             if (ReferenceEquals(item, _item) && count == _count && locked == _locked && visible == _visible
-                && (item == null || item.type == _type))
+                && recipe == _recipe && selected == _selected && (item == null || item.type == _type))
                 return; // unchanged; skip the binding refresh
             _type = item?.type ?? 0;
             _item = item;
             _count = count;
             _locked = locked;
+            _recipe = recipe;
+            _selected = selected;
             if (_visible != visible)
             {
                 _visible = visible;
@@ -69,7 +73,7 @@ namespace RefinedStorageControl.Game.UI
             base.Update(_dt);
         }
 
-        private bool HasItem => _item != null && !_item.IsEmpty() && _count > 0;
+        private bool HasItem => _item != null && !_item.IsEmpty() && (_count > 0 || _recipe);
 
         public override bool GetBindingValueInternal(ref string value, string bindingName)
         {
@@ -82,16 +86,18 @@ namespace RefinedStorageControl.Game.UI
                     value = HasItem ? _item.ItemClass.GetIconName() : "";
                     return true;
                 case "itemiconcolor":
-                    value = HasItem ? Rgba(_item.ItemClass.GetIconTint(_item)) : "255,255,255,255";
+                    value = !HasItem ? "255,255,255,255"
+                        : _recipe && _count == 0 ? "255,255,255,80"
+                        : Rgba(_item.ItemClass.GetIconTint(_item));
                     return true;
                 case "itemcount":
-                    value = HasItem && _count > 1 ? Short(_count) : "";
+                    value = HasItem && (_count > 1 || _recipe) ? Short(_count) : "";
                     return true;
                 case "hasquality":
-                    value = (HasItem && _item.HasQuality).ToString();
+                    value = (HasItem && !_recipe && _item.HasQuality).ToString();
                     return true;
                 case "qualitycolor":
-                    value = HasItem && _item.HasQuality ? Rgba(QualityInfo.GetQualityColor(_item.Quality)) : "0,0,0,0";
+                    value = HasItem && !_recipe && _item.HasQuality ? Rgba(QualityInfo.GetQualityColor(_item.Quality)) : "0,0,0,0";
                     return true;
                 case "locked":
                     value = _locked.ToString();
@@ -100,10 +106,12 @@ namespace RefinedStorageControl.Game.UI
                     value = (_favorite && HasItem).ToString();
                     return true;
                 case "bgcolor":
-                    value = _locked ? "60,45,30,255" : "40,40,40,255";
+                    value = _selected ? "60,85,120,255" : _locked ? "60,45,30,255" : "40,40,40,255";
                     return true;
                 case "tooltip":
-                    value = HasItem
+                    value = HasItem && _recipe
+                        ? _item.ItemClass.GetLocalizedItemName() + ": can craft " + _count
+                        : HasItem
                         ? _item.ItemClass.GetLocalizedItemName() + " x" + _count
                           + (_item.HasQuality ? " (Q" + _item.Quality + ")" : "")
                         : "";

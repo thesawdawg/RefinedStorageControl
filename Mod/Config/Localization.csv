@@ -42,3 +42,11 @@ rscCabinetNotEmpty,UI,UI,,,Remove the disks first
 rscCabinetChecking,UI,UI,,,Checking the cabinet... try again
 rscDisplayStorageT1,progression,UI,,,Storage Network
 rscDisplayStorageT2,progression,UI,,,Powered Storage
+rscModeCraft,UI,UI,,,Craft
+rscModeStorage,UI,UI,,,Storage
+rscFavMark,UI,UI,,,Favorites
+rscFavMarking,UI,UI,,,Marking...
+rscCraft,UI,UI,,,Craft
+rscCraftMax,UI,UI,,,Max
+rscCraftCancel,UI,UI,,,Cancel
+rscCraftPick,UI,UI,,,Pick a recipe. Ingredients come from your storage (the forge uses its own materials).

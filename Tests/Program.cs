@@ -14,6 +14,7 @@ internal static class Program
             NodeConfigTests.Run();
             ViewTests.Run();
             DiskStoreTests.Run();
+            CraftingTests.Run();
             Console.WriteLine("PASS: " + Harness.Count + " checks passed.");
             return 0;
         }

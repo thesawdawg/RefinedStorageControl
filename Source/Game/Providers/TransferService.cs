@@ -46,11 +46,12 @@ namespace RefinedStorageControl.Game.Providers
             public int Providers;
         }
 
-        private sealed class Network
+        internal sealed class Network
         {
             public NodeId Controller;
             public ControllerTier Tier;
             public List<StorageProvider> Providers;
+            public List<Vector3i> Interfaces; // fixed position order; stations attach here too (CRAFT-01)
         }
 
         private static readonly Dictionary<NodeId, TransferBudget> Budgets = new Dictionary<NodeId, TransferBudget>();
@@ -113,7 +114,7 @@ namespace RefinedStorageControl.Game.Providers
             return DepositCore(net, user, null, item, count, "remote backpack");
         }
 
-        private static Result DepositCore(Network net, PlatformUserIdentifierAbs user, ItemStackGrid exclude,
+        internal static Result DepositCore(Network net, PlatformUserIdentifierAbs user, ItemStackGrid exclude,
             ItemValue item, int count, string from)
         {
             var budget = BudgetFor(net);
@@ -253,7 +254,7 @@ namespace RefinedStorageControl.Game.Providers
             return new Result(true, moved, sources.Count, note);
         }
 
-        private static bool TryResolveNetwork(Vector3i nodePos, out Network net, out string reason)
+        internal static bool TryResolveNetwork(Vector3i nodePos, out Network net, out string reason)
         {
             net = null;
             var world = GameManager.Instance.World;
@@ -295,7 +296,15 @@ namespace RefinedStorageControl.Game.Providers
                     return false;
                 }
             }
-            net = new Network { Controller = controller, Tier = tier, Providers = CollectProviders(world, registry, controller, tier) };
+            var interfaces = new List<Vector3i>();
+            foreach (var member in registry.Members(controller))
+                if (registry.KindOf(member) == NodeKind.Interface)
+                    interfaces.Add(RscBlocks.FromNodeId(member));
+            net = new Network
+            {
+                Controller = controller, Tier = tier, Providers = CollectProviders(world, registry, controller, tier),
+                Interfaces = interfaces
+            };
             reason = null;
             return true;
         }
@@ -356,7 +365,7 @@ namespace RefinedStorageControl.Game.Providers
         };
 
         // Priority and filter come from the serving interface's or cabinet's settings.
-        private static List<StorageProvider> Eligible(Network net, ItemStackGrid exclude, Func<StorageProvider, bool> allowed,
+        internal static List<StorageProvider> Eligible(Network net, ItemStackGrid exclude, Func<StorageProvider, bool> allowed,
             ItemKey key, bool holdsCheck, out List<ProviderInfo> infos)
         {
             var eligible = new List<StorageProvider>();

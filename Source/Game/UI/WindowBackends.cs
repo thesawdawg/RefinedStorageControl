@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RefinedStorageControl.Game.Crafting;
 using RefinedStorageControl.Game.Net;
 using RefinedStorageControl.Game.Persistence;
 using RefinedStorageControl.Game.Providers;
@@ -101,6 +102,85 @@ namespace RefinedStorageControl.Game.UI
             ClientSession.Store(slots);
             ClientSession.Status = slots.Count == 0 ? "Nothing to store" : "Storing...";
         }
+    }
+
+    // Terminal crafting, host or client.
+    internal interface ICraftBackend
+    {
+        int Version { get; }
+        List<CraftOption> Options { get; }
+        string Error { get; }
+        List<CraftPendingView> Pending { get; }
+        string Status { get; }
+        void List();
+        void Request(CraftOption option, int crafts);
+        void Cancel(int requestId);
+        void Poll();
+    }
+
+    internal sealed class HostCraftBackend : ICraftBackend
+    {
+        private readonly EntityPlayerLocal _player;
+        private readonly Vector3i _pos;
+
+        public HostCraftBackend(EntityPlayerLocal player, Vector3i pos)
+        {
+            _player = player;
+            _pos = pos;
+        }
+
+        private static PlatformUserIdentifierAbs User => Platform.PlatformManager.InternalLocalUserIdentifier;
+
+        public int Version { get; private set; }
+        public List<CraftOption> Options { get; private set; } = new List<CraftOption>();
+        public string Error { get; private set; }
+        public List<CraftPendingView> Pending => CraftService.PendingFor(User);
+        public string Status { get; private set; }
+
+        public void List()
+        {
+            CraftService.List(User, _player, _pos, out var options, out string reason);
+            Options = options;
+            Error = reason;
+            Version++;
+        }
+
+        public void Request(CraftOption option, int crafts)
+        {
+            CraftService.Request(User, _player, _pos, option.RecipeIndex, option.Output.ItemClass.GetItemName(), crafts,
+                out string message);
+            Status = message;
+            List();
+        }
+
+        public void Cancel(int requestId)
+        {
+            CraftService.Cancel(User, requestId, out string message);
+            Status = message;
+            List();
+        }
+
+        public void Poll()
+        {
+        }
+    }
+
+    internal sealed class ClientCraftBackend : ICraftBackend
+    {
+        public int Version => ClientSession.CraftVersion;
+        public List<CraftOption> Options => ClientSession.CraftOptions;
+        public string Error => ClientSession.CraftError;
+        public List<CraftPendingView> Pending => ClientSession.CraftPending;
+        public string Status => null; // replies land in the terminal status line
+
+        public void List() => ClientSession.SendCraft(CraftAction.List);
+
+        public void Request(CraftOption option, int crafts) =>
+            ClientSession.SendCraft(CraftAction.Request, option.RecipeIndex, option.Output.ItemClass.GetItemName(), crafts);
+
+        public void Cancel(int requestId) => ClientSession.SendCraft(CraftAction.Cancel, requestId: requestId);
+
+        public void Poll() => ClientSession.SendCraft(CraftAction.Status);
     }
 
     internal interface ICabinetBackend

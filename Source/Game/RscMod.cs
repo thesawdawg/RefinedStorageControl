@@ -27,6 +27,7 @@ namespace RefinedStorageControl.Game
         {
             Persistence.NodeConfigFile.Load();
             Persistence.DiskFile.Load();
+            Persistence.CraftFile.Load();
         }
 
         private static void OnWorldShuttingDown(ref ModEvents.SWorldShuttingDownData data)
@@ -34,6 +35,7 @@ namespace RefinedStorageControl.Game
             Prototypes.ProtoCommands.OnWorldShuttingDown();
             Providers.TransferService.Reset();
             Providers.TransferQueue.Reset();
+            Crafting.CraftService.Reset();
             Providers.NetCommands.Reset();
             Net.ClientSession.Reset();
             Persistence.RemovalHooks.Reset();
