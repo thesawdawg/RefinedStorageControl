@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using RefinedStorageControl.Storage;
 using static Harness;
@@ -57,6 +58,34 @@ internal static class DiskStoreTests
         badMagic[1] = 0;
         Reject<InvalidDataException>(() => Read(badMagic), "Bad magic must be rejected.");
         Check(RoundTrip(new DiskStore(Guid.NewGuid())).DiskCount == 0, "An empty store must round trip.");
+
+        DestructionTests();
+    }
+
+    private static void DestructionTests()
+    {
+        var disks = Enumerable.Range(0, 4).Select(_ => Guid.NewGuid()).ToList();
+        var rolls = new Queue<double>(new[] { 0.1, 0.5, 0.49, 0.99 });
+        var survivors = new System.Collections.Generic.List<Guid>();
+        var destroyed = new System.Collections.Generic.List<Guid>();
+        DestructionRules.RollDisks(disks, 0.5, () => rolls.Dequeue(), survivors, destroyed);
+        Check(survivors.SequenceEqual(new[] { disks[0], disks[2] }) && destroyed.SequenceEqual(new[] { disks[1], disks[3] }),
+            "Each disk must be rolled once: below the chance survives, at or above is destroyed.");
+        Check(rolls.Count == 0, "Exactly one roll per disk.");
+
+        survivors.Clear();
+        destroyed.Clear();
+        DestructionRules.RollDisks(disks, 1.0, () => 0.999, survivors, destroyed);
+        Check(survivors.Count == 4 && destroyed.Count == 0, "A 100% chance keeps every disk.");
+        DestructionRules.RollDisks(disks, 0.0, () => 0.0, survivors, destroyed);
+        Check(destroyed.Count == 4, "A 0% chance destroys every disk.");
+        Reject<ArgumentOutOfRangeException>(() => DestructionRules.RollDisks(disks, 1.5, () => 0, survivors, destroyed),
+            "Chances above 1 must be rejected.");
+
+        Check(DestructionRules.LosesFilter(0.5, () => 0.2) && !DestructionRules.LosesFilter(0.5, () => 0.7),
+            "Filter loss must follow its roll.");
+        Check(DestructionRules.DiskSurvivalChance == 0.5 && DestructionRules.FilterLossChance == 0.5,
+            "Defaults must match the F01 decision (50%).");
     }
 
     private static byte[] Bytes(DiskStore store)

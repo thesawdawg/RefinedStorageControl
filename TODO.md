@@ -40,10 +40,10 @@ P0 investigates crafting and claim activity early to expose architectural constr
 ## P2 - Powered digital storage and progression
 
 - [ ] Implement the advanced controller and native power integration; block all advanced storage access during outages. **RSC-10; PWR-01/02/04**
-- [ ] Add drive cabinets and disks of **1k, 10k, 100k, 250k, 500k, and 1m individual items**. Preserve portable data and exact item state. **RSC-08; DISK-01 through DISK-03** *(built: disk store + disks.dat with world binding, six disk items, drive cabinet block, F01 power values, cabinet window with insert/remove for host and co-op. disks as storage providers with ACL and power checks, cabinet priority/filter. Next: destruction/pickup, recipes)*
+- [ ] Add drive cabinets and disks of **1k, 10k, 100k, 250k, 500k, and 1m individual items**. Preserve portable data and exact item state. **RSC-08; DISK-01 through DISK-03** *(built: disk store + disks.dat with world binding, six disk items, drive cabinet block, F01 power values, cabinet window with insert/remove for host and co-op. disks as storage providers with ACL and power checks, cabinet priority/filter, destruction rolls and empty-only pickup. Next: recipes)*
 - [ ] Implement owner plus explicit player allowlist with independent deposit/withdraw/craft/configure permissions. Finish ownership lifecycle rules before shipping disks. **RSC-01; ACCESS-03/04** *(built: owner on first insert, allowlist editing in the cabinet window, ownership transfer, `rsc disk owner`; deposit/withdraw checks arrive with disks in routing; awaiting in-game checks)*
 - [ ] Apply configurable priority/filter behavior to digital providers alongside physical containers. **RSC-02; ROUTE-01 through ROUTE-04** *(built: per-cabinet priority/filter in shared routing; awaiting in-game checks)*
-- [ ] Implement per-disk destruction survival and filter/upgrade loss, without duplicate drops or stale media resurrection. **RSC-09; DISK-04 through DISK-06**
+- [ ] Implement per-disk destruction survival and filter/upgrade loss, without duplicate drops or stale media resurrection. **RSC-09; DISK-04 through DISK-06** *(built: survival rolls, exactly-once cleanup, empty-only pickup, filter loss for rebuilt blocks; awaiting in-game checks)*
 - [ ] Add Advanced Engineering rank 2/5 gates, approved Wiring 101 thresholds, and recipes using existing components. **RSC-03; PROG-01/02/MOD-03**
 
 **Exit:** mixed physical/digital storage passes access, capacity, power, portability, and destruction scenarios A02/A03/A06-A08.

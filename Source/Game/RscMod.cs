@@ -36,6 +36,7 @@ namespace RefinedStorageControl.Game
             Providers.TransferQueue.Reset();
             Providers.NetCommands.Reset();
             Net.ClientSession.Reset();
+            Persistence.RemovalHooks.Reset();
         }
     }
 }

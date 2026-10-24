@@ -226,8 +226,25 @@ namespace RefinedStorageControl.Game.Net
                     .Setup(CabinetPos.Value, action, slot, target, perms, item));
         }
 
+        // DISK-09 pickup check on clients: the last known "has disks" answer per
+        // cabinet, trusted for a few seconds.
+        private const float KnownCabinetSeconds = 5f;
+        private static readonly Dictionary<Vector3i, (bool loaded, float time)> KnownCabinets =
+            new Dictionary<Vector3i, (bool, float)>();
+
+        public static bool? CabinetLoaded(Vector3i pos) =>
+            KnownCabinets.TryGetValue(pos, out var known) && Time.time - known.time <= KnownCabinetSeconds
+                ? known.loaded
+                : (bool?)null;
+
+        public static void ProbeCabinet(Vector3i pos) =>
+            ConnectionManager.Instance.SendToServer(NetPackageManager.GetPackage<NetPackageRscCabinet>()
+                .Setup(pos, CabinetAction.Query));
+
         public static void OnCabinetState(Vector3i pos, string message, CabinetView view)
         {
+            if (view.Error == null)
+                KnownCabinets[pos] = (System.Array.Exists(view.Slots, s => s.Present), Time.time);
             if (CabinetPos != pos)
                 return;
             Cabinet = view;
@@ -239,6 +256,7 @@ namespace RefinedStorageControl.Game.Net
         public static void Reset()
         {
             CabinetPos = null;
+            KnownCabinets.Clear();
             TerminalPos = null;
             InterfacePos = null;
             StoreQueue.Clear();

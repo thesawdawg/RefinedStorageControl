@@ -38,3 +38,5 @@ rscAdd,UI,UI,,,Add
 rscBackpackDisks,UI,UI,,,Backpack (click a disk to insert it)
 rscCabinetSettings,UI,UI,,,Priority and filter
 rscCabinetSettingsTitle,UI,UI,,,Drive Cabinet Settings
+rscCabinetNotEmpty,UI,UI,,,Remove the disks first
+rscCabinetChecking,UI,UI,,,Checking the cabinet... try again

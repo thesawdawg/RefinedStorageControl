@@ -55,6 +55,65 @@ namespace RefinedStorageControl.Game.Blocks
             return true;
         }
 
+        // DISK-04/05: tell the removal hook that this removal is a destruction.
+        public override DestroyedResult OnBlockDestroyedBy(WorldBase _world, BlockValueRef _bvRef, BlockValue _blockValue,
+            int _entityId, bool _bUseHarvestTool)
+        {
+            if (_bvRef.TryGetBlockPos(out var pos))
+                Persistence.RemovalHooks.MarkDestroyed(pos);
+            return base.OnBlockDestroyedBy(_world, _bvRef, _blockValue, _entityId, _bUseHarvestTool);
+        }
+
+        public override DestroyedResult OnBlockDestroyedByExplosion(WorldBase _world, BlockValueRef _bvRef,
+            BlockValue _blockValue, int _playerThatStartedExpl)
+        {
+            if (_bvRef.TryGetBlockPos(out var pos))
+                Persistence.RemovalHooks.MarkDestroyed(pos);
+            return base.OnBlockDestroyedByExplosion(_world, _bvRef, _blockValue, _playerThatStartedExpl);
+        }
+
+        // A collapsing block is treated as destroyed too.
+        public override void OnBlockStartsToFall(WorldBase _world, Vector3i _blockPos, BlockValue _blockValue)
+        {
+            Persistence.RemovalHooks.MarkDestroyed(_blockPos);
+            base.OnBlockStartsToFall(_world, _blockPos, _blockValue);
+        }
+
+        // DISK-09: a cabinet can be picked up only when it holds no disks. The host
+        // knows directly; a client asks the server and retries. Should a stale
+        // answer still let a loaded cabinet through, the server drops its disks
+        // intact, so nothing is lost.
+        public override bool takeItemWithTimerCanTake(Vector3i _blockPos, EntityAlive _player)
+        {
+            if (!RscBlocks.TryGetRole(this, out var kind, out _) || kind != NodeKind.DriveCabinet)
+                return base.takeItemWithTimerCanTake(_blockPos, _player);
+            bool? loaded;
+            if (ConnectionManager.Instance.IsServer)
+                loaded = !(Persistence.DiskFile.Store?.IsEmpty(PositionKey.Pack(_blockPos.x, _blockPos.y, _blockPos.z)) ?? true);
+            else
+            {
+                loaded = Net.ClientSession.CabinetLoaded(_blockPos);
+                if (!loaded.HasValue)
+                {
+                    Net.ClientSession.ProbeCabinet(_blockPos);
+                    Deny(_player, "rscCabinetChecking");
+                    return false;
+                }
+            }
+            if (loaded.Value)
+            {
+                Deny(_player, "rscCabinetNotEmpty");
+                return false;
+            }
+            return base.takeItemWithTimerCanTake(_blockPos, _player);
+        }
+
+        private static void Deny(EntityAlive player, string key)
+        {
+            if (player is EntityPlayerLocal local)
+                GameManager.ShowTooltip(local, Localization.Get(key), string.Empty, "ui_denied");
+        }
+
         private bool Opens(out NodeKind kind)
         {
             return RscBlocks.TryGetRole(this, out kind, out _)

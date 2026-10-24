@@ -52,40 +52,4 @@ namespace RefinedStorageControl.Game.Persistence
             DiskFile.SaveIfNeeded();
         }
     }
-
-    // A removed RSC block loses its settings, so a new block placed at the same
-    // position starts from the defaults. Fires only on real removal, not unload.
-    [HarmonyPatch(typeof(BlockPowered), nameof(BlockPowered.OnBlockRemoved))]
-    internal static class BlockRemovedPatch
-    {
-        private static void Postfix(Vector3i _blockPos, BlockValue _blockValue)
-        {
-            if (_blockValue.ischild || !ConnectionManager.Instance.IsServer)
-                return;
-            if (!Topology.RscBlocks.TryGetRole(_blockValue.Block, out var kind, out _))
-                return;
-            if (kind == Core.NodeKind.DriveCabinet)
-                DropInstalledDisks(_blockPos);
-            if (NodeConfigFile.Store.Remove(Core.PositionKey.Pack(_blockPos.x, _blockPos.y, _blockPos.z)))
-                RscLog.Out("node config cleared for removed block at " + _blockPos);
-        }
-
-        // Until the DISK-04 survival rolls and DISK-09 pickup refusal land, a
-        // removed cabinet drops every installed disk intact so none is stranded.
-        private static void DropInstalledDisks(Vector3i pos)
-        {
-            var store = DiskFile.Store;
-            if (store == null)
-                return;
-            foreach (var id in store.RemoveCabinet(Core.PositionKey.Pack(pos.x, pos.y, pos.z)))
-            {
-                var record = store.Get(id);
-                if (record == null)
-                    continue;
-                Providers.Drops.Drop(Providers.DiskItems.Create(record.Tier, id, store.WorldId), 1,
-                    pos.ToVector3() + UnityEngine.Vector3.one * 0.5f);
-                RscLog.Out("cabinet at " + pos + " removed; dropped disk " + id.ToString("N"));
-            }
-        }
-    }
 }
