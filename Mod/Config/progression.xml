@@ -1,0 +1,47 @@
+<configs>
+  <!-- Unlocks (PROG-01/02, F01): Wiring 101 (craftingElectrician) levels, the
+       same gates as vanilla relays (25), battery banks (55) and quality car
+       batteries (55-100). A RecipeTagUnlocked effect with a requirement needs
+       both: the controllers also need Advanced Engineering rank 2 (simple) or
+       rank 5 (advanced). -->
+  <append xpath="/progression/crafting_skills/crafting_skill[@name='craftingElectrician']/effect_group">
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="25,100" value="1" tags="rscProtoHub,rscProtoInterface,rscProtoTerminal" />
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="25,100" value="1" tags="rscProtoControllerSimple">
+      <requirement name="ProgressionLevel" progression_name="perkAdvancedEngineering" operation="GTE" value="2" />
+    </passive_effect>
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="55,100" value="1" tags="rscProtoControllerAdvanced">
+      <requirement name="ProgressionLevel" progression_name="perkAdvancedEngineering" operation="GTE" value="5" />
+    </passive_effect>
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="55,100" value="1" tags="rscProtoDriveCabinet,rscDisk1k" />
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="60,100" value="1" tags="rscDisk10k" />
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="70,100" value="1" tags="rscDisk100k" />
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="80,100" value="1" tags="rscDisk250k" />
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="90,100" value="1" tags="rscDisk500k" />
+    <passive_effect name="RecipeTagUnlocked" operation="base_set" level="100,100" value="1" tags="rscDisk1m" />
+  </append>
+
+  <!-- What the Wiring 101 page shows at each level. -->
+  <insertBefore xpath="/progression/crafting_skills/crafting_skill[@name='craftingElectrician']/effect_group">
+    <display_entry icon="electricwirerelay" name_key="rscDisplayStorageT1" has_quality="false" unlock_level="25">
+      <unlock_entry item="rscProtoHub,rscProtoInterface,rscProtoTerminal,rscProtoControllerSimple" unlock_tier="1" />
+    </display_entry>
+    <display_entry icon="electricwirerelay" name_key="rscDisplayStorageT2" has_quality="false" unlock_level="55">
+      <unlock_entry item="rscProtoControllerAdvanced,rscProtoDriveCabinet,rscDisk1k" unlock_tier="1" />
+    </display_entry>
+    <display_entry icon="resourceElectricParts" name_key="rscDisk10k" has_quality="false" unlock_level="60">
+      <unlock_entry item="rscDisk10k" unlock_tier="1" />
+    </display_entry>
+    <display_entry icon="resourceElectricParts" name_key="rscDisk100k" has_quality="false" unlock_level="70">
+      <unlock_entry item="rscDisk100k" unlock_tier="1" />
+    </display_entry>
+    <display_entry icon="resourceElectricParts" name_key="rscDisk250k" has_quality="false" unlock_level="80">
+      <unlock_entry item="rscDisk250k" unlock_tier="1" />
+    </display_entry>
+    <display_entry icon="resourceElectricParts" name_key="rscDisk500k" has_quality="false" unlock_level="90">
+      <unlock_entry item="rscDisk500k" unlock_tier="1" />
+    </display_entry>
+    <display_entry icon="resourceElectricParts" name_key="rscDisk1m" has_quality="false" unlock_level="100">
+      <unlock_entry item="rscDisk1m" unlock_tier="1" />
+    </display_entry>
+  </insertBefore>
+</configs>

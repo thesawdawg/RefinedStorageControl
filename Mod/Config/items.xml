@@ -2,7 +2,7 @@
   <!-- Storage disks (DISK-01). Placeholder model/icon: vanilla electrical parts,
        tinted per tier. Stacknumber 1: each disk carries its own identity in item
        metadata (rsc.disk / rsc.world), so disks must never merge.
-       Recipes and Wiring 101 gates (55/60/70/80/90/100) come with the P2 recipe step. -->
+       Recipes: recipes.xml; Wiring 101 gates (55/60/70/80/90/100): progression.xml. -->
   <append xpath="/items">
     <item name="rscDisk1k">
       <property name="Extends" value="resourceElectricParts" />
@@ -15,6 +15,7 @@
       <property name="EconomicValue" value="200" />
       <property name="CreativeMode" value="Player" />
       <property name="RscDiskTier" value="K1" />
+      <property name="UnlockedBy" value="craftingElectrician" />
     </item>
     <item name="rscDisk10k">
       <property name="Extends" value="rscDisk1k" />
