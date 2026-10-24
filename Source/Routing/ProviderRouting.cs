@@ -22,6 +22,8 @@ namespace RefinedStorageControl.Routing
 
         public FilterMode Mode { get; }
 
+        public IReadOnlyCollection<string> Names => _names;
+
         public bool Accepts(string itemName)
         {
             switch (Mode)

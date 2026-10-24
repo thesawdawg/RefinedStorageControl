@@ -21,6 +21,8 @@ See `SPECS.md` (requirements and IDs), `TODO.md` (milestones), and
     - `Source/Game/Topology/` — wire tree projection and wire rules.
     - `Source/Game/Providers/` — vanilla container providers, the host
       transfer service, and `rsc net` commands.
+    - `Source/Game/Persistence/` — RSC save files (interface settings) and
+      the save/removal hooks.
     - `Source/Game/Prototypes/` — P0 `rsc proto` commands (dev only).
 - `Tests/` — net48 console harness compiling `Source/**` **except** `Source/Game/`.
   This is the purity check: Core/Storage/Access/Routing must never use game or

@@ -256,8 +256,10 @@ namespace RefinedStorageControl.Game.Providers
             return true;
         }
 
-        // Containers in the six blocks around each interface, deduplicated.
-        private static List<ContainerProvider> CollectProviders(World world, NetworkRegistry registry, NodeId controller)
+        // Containers in the six blocks around each interface, deduplicated. A
+        // container touching several interfaces takes its settings from the first
+        // in fixed position order (Members is sorted).
+        public static List<ContainerProvider> CollectProviders(World world, NetworkRegistry registry, NodeId controller)
         {
             var providers = new List<ContainerProvider>();
             var seen = new HashSet<Vector3i>();
@@ -265,17 +267,30 @@ namespace RefinedStorageControl.Game.Providers
             {
                 if (registry.KindOf(member) != NodeKind.Interface)
                     continue;
-                var pos = RscBlocks.FromNodeId(member);
-                foreach (var dir in Neighbors)
+                foreach (var provider in ContainersAround(world, RscBlocks.FromNodeId(member)))
                 {
-                    var np = pos + dir;
-                    if (RscBlocks.TryGetRole(world.GetBlock(np).Block, out _, out _))
+                    if (!seen.Add(provider.Position))
                         continue;
-                    if (ContainerProvider.TryResolve(world, np, out var provider, out _) && seen.Add(provider.Position))
-                        providers.Add(provider);
+                    provider.Interface = member;
+                    providers.Add(provider);
                 }
             }
             return providers;
+        }
+
+        public static List<ContainerProvider> ContainersAround(World world, Vector3i interfacePos)
+        {
+            var found = new List<ContainerProvider>();
+            foreach (var dir in Neighbors)
+            {
+                var np = interfacePos + dir;
+                if (RscBlocks.TryGetRole(world.GetBlock(np).Block, out _, out _))
+                    continue;
+                if (ContainerProvider.TryResolve(world, np, out var provider, out _)
+                    && !found.Exists(f => f.Position.Equals(provider.Position)))
+                    found.Add(provider);
+            }
+            return found;
         }
 
         private static readonly Vector3i[] Neighbors =
@@ -284,8 +299,7 @@ namespace RefinedStorageControl.Game.Providers
             new Vector3i(0, -1, 0), new Vector3i(0, 0, 1), new Vector3i(0, 0, -1)
         };
 
-        // Priority and filters are not configurable yet (needs the RSC node save
-        // file); every provider uses the default priority and no filter.
+        // Priority and filter come from the serving interface's saved settings.
         private static List<ContainerProvider> Eligible(Network net, PlatformUserIdentifierAbs user, ContainerProvider endpoint,
             ItemKey key, bool holdsCheck, out List<ProviderInfo> infos)
         {
@@ -296,8 +310,10 @@ namespace RefinedStorageControl.Game.Providers
                 if (p.Position.Equals(endpoint.Position) || !p.CanAccess(user) || p.InUse)
                     continue;
                 eligible.Add(p);
-                infos.Add(new ProviderInfo(p.SortKey, ProviderRouting.DefaultPriority, ItemFilter.None,
-                    holdsCheck && p.Holds(key)));
+                var config = p.Interface.HasValue
+                    ? Persistence.NodeConfigFile.Store.Get(p.Interface.Value.Value)
+                    : NodeConfig.Default;
+                infos.Add(new ProviderInfo(p.SortKey, config.Priority, config.Filter, holdsCheck && p.Holds(key)));
             }
             return eligible;
         }

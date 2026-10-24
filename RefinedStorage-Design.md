@@ -296,7 +296,9 @@ Choices made while building the container provider and transfer service. They fo
 - **Eligible containers:** only player-placed containers (`TileEntityComposite.PlayerPlaced`). This keeps the network away from unopened loot and from loot that respawns when a touched world container is emptied. Workstations are excluded; they get their own adapters in P3.
 - **Player slot locks** are respected: a locked slot is never filled or emptied by the network.
 - **Withdraw size:** one request moves at most one stack. Each container slot it draws from is one transfer; on the simple tier a request may stop early at the budget and report it.
-- **Not yet configurable:** priority and filters use the defaults (50, no filter) until the RSC node save file exists. Round-robin scheduling is deferred to the terminal request queue; for now a request that finds the budget used is rejected with the wait time.
+- **Interface settings file:** priority and filter are saved per interface in `<save>/RefinedStorageControl/nodes.dat` (versioned, with a `.bak` of the previous good copy), written right after each world save. Unreadable files are renamed with an `.unreadable-<time>` suffix and the world starts with defaults instead of overwriting them. Removing an interface block clears its settings. A container touching several interfaces uses the settings of the first interface in fixed position order.
+- **Configuring:** `rsc net config/priority/filter` on the host console for now; per-player configure permission arrives with the terminal UI. Filter names are exact item names and are validated against the game's item list.
+- **Round-robin scheduling** is deferred to the terminal request queue; for now a request that finds the budget used is rejected with the wait time.
 - **Console front end:** `rsc net list/deposit/withdraw` drives the service until the terminal UI exists. Endpoints are containers, not player inventory; player-inventory transfers come with the terminal's network packages.
 
 ## Remaining decisions

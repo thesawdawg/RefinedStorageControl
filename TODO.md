@@ -31,7 +31,7 @@ P0 investigates crafting and claim activity early to expose architectural constr
 - [ ] Implement the network registry, simple controller, interfaces, hubs, and terminals. Enforce one controller (wire rejection + Conflict state) and the vanilla-wiring rule. **RSC-04/05; NET-01 through NET-06**
 - [ ] Add vanilla container providers, excluding vehicle/drone adapters; preserve native inventory and destruction rules. **RSC-06; PHY-01 through PHY-04** *(built: interface serves adjacent player-placed containers; host transfer service with `rsc net` commands; awaiting in-game checks)*
 - [ ] Apply native permissions to both per-viewer inventory displays and host-side transfers. **RSC-06; ACCESS-01/02**
-- [ ] Implement deposit-only filters, configurable priority 0-100 (default 50), deterministic deposit/withdraw ordering, and safe full-storage behavior. **RSC-02; ROUTE-01 through ROUTE-05**
+- [ ] Implement deposit-only filters, configurable priority 0-100 (default 50), deterministic deposit/withdraw ordering, and safe full-storage behavior. **RSC-02; ROUTE-01 through ROUTE-05** *(built: routing order, filters, saved interface settings, `rsc net priority/filter`; awaiting in-game checks)*
 - [ ] Enforce the simple-tier two-transfer/second budget (round-robin, deposit matching counted) and the advanced-tier technical cap. **RSC-07; PROG-04/06**
 - [ ] Build a vanilla-like terminal (keyboard/mouse) with search, favorites, categories/sort, deposit matching, and individual equipment variants. **RSC-16; UI-01 through UI-05**
 

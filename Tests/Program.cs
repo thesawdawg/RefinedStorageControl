@@ -11,6 +11,7 @@ internal static class Program
             RoutingTests.Run();
             StackPlacementTests.Run();
             CoreTests.Run();
+            NodeConfigTests.Run();
             Console.WriteLine("PASS: " + Harness.Count + " checks passed.");
             return 0;
         }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
+using RefinedStorageControl.Routing;
 using RefinedStorageControl.Storage;
 
 namespace RefinedStorageControl.Game.Providers
@@ -15,7 +16,10 @@ namespace RefinedStorageControl.Game.Providers
         public const string Usage =
             "rsc net list <x y z> - items this player can reach through the network of block x y z\n" +
             "rsc net deposit <x y z> <cx cy cz> <slot> - move container cx cy cz slot into the network\n" +
-            "rsc net withdraw <x y z> <#> <count> <cx cy cz> - move up to one stack of list entry # into container cx cy cz";
+            "rsc net withdraw <x y z> <#> <count> <cx cy cz> - move up to one stack of list entry # into container cx cy cz\n" +
+            "rsc net config <x y z> - show an interface's priority, filter and containers\n" +
+            "rsc net priority <x y z> <0-100> - set an interface's priority (lower is preferred for deposits)\n" +
+            "rsc net filter <x y z> none|allow|block [itemName ...] - set an interface's deposit filter";
 
         public static void Dispatch(List<string> args, CommandSenderInfo senderInfo)
         {
@@ -43,6 +47,15 @@ namespace RefinedStorageControl.Game.Providers
                 case "withdraw" when args.Count == 9 && TryVec(args, 1, out var pos)
                     && TryInt(args[4], out int index) && TryInt(args[5], out int count) && TryVec(args, 6, out var cpos):
                     Withdraw(user, pos, index, count, cpos);
+                    return;
+                case "config" when args.Count == 4 && TryVec(args, 1, out var pos):
+                    ShowConfig(pos);
+                    return;
+                case "priority" when args.Count == 5 && TryVec(args, 1, out var pos) && TryInt(args[4], out int priority):
+                    SetPriority(pos, priority);
+                    return;
+                case "filter" when args.Count >= 5 && TryVec(args, 1, out var pos):
+                    SetFilter(pos, args[4].ToLowerInvariant(), args.GetRange(5, args.Count - 5));
                     return;
             }
             SdtdConsole.Instance.Output(Usage);
@@ -94,6 +107,84 @@ namespace RefinedStorageControl.Game.Providers
             }
             Report(TransferService.Withdraw(user, pos, keys[index], count, dest), "withdrew");
         }
+
+        // Configuration is host-console only until the terminal UI adds its own
+        // permission checks; any player allowed to run console commands can use it.
+        private static void ShowConfig(Vector3i pos)
+        {
+            if (!IsInterface(pos))
+                return;
+            var config = Persistence.NodeConfigFile.Store.Get(Key(pos));
+            Say("interface " + pos + " priority=" + config.Priority + " filter=" + Describe(config.Filter));
+            var containers = TransferService.ContainersAround(GameManager.Instance.World, pos);
+            if (containers.Count == 0)
+                Say("  no player-placed container touching this interface");
+            foreach (var c in containers)
+                Say("  serves container at " + c.Position);
+        }
+
+        private static void SetPriority(Vector3i pos, int priority)
+        {
+            if (!IsInterface(pos))
+                return;
+            if (priority < ProviderRouting.MinPriority || priority > ProviderRouting.MaxPriority)
+            {
+                Say("rejected: priority must be 0-100");
+                return;
+            }
+            var store = Persistence.NodeConfigFile.Store;
+            store.Set(Key(pos), new NodeConfig(priority, store.Get(Key(pos)).Filter));
+            Say("interface " + pos + " priority=" + priority);
+        }
+
+        private static void SetFilter(Vector3i pos, string mode, List<string> names)
+        {
+            if (!IsInterface(pos))
+                return;
+            FilterMode filterMode;
+            switch (mode)
+            {
+                case "none": filterMode = FilterMode.None; break;
+                case "allow": filterMode = FilterMode.Allow; break;
+                case "block": filterMode = FilterMode.Block; break;
+                default:
+                    Say("rejected: filter mode must be none, allow or block");
+                    return;
+            }
+            if (filterMode == FilterMode.None)
+                names.Clear();
+            else if (names.Count == 0)
+            {
+                Say("rejected: list at least one item name");
+                return;
+            }
+            foreach (var name in names)
+                if (ItemClass.GetItemClass(name) == null)
+                {
+                    Say("rejected: unknown item '" + name + "' (names are case-sensitive)");
+                    return;
+                }
+            var store = Persistence.NodeConfigFile.Store;
+            var filter = new ItemFilter(filterMode, names);
+            store.Set(Key(pos), new NodeConfig(store.Get(Key(pos)).Priority, filter));
+            Say("interface " + pos + " filter=" + Describe(filter));
+        }
+
+        private static bool IsInterface(Vector3i pos)
+        {
+            var block = GameManager.Instance.World.GetBlock(pos).Block;
+            if (Topology.RscBlocks.TryGetRole(block, out var kind, out _) && kind == Core.NodeKind.Interface)
+                return true;
+            Say("rejected: no storage interface at " + pos);
+            return false;
+        }
+
+        private static long Key(Vector3i pos) => Core.PositionKey.Pack(pos.x, pos.y, pos.z);
+
+        private static string Describe(ItemFilter filter) =>
+            filter.Mode == FilterMode.None
+                ? "none"
+                : filter.Mode.ToString().ToLowerInvariant() + " [" + string.Join(", ", filter.Names) + "]";
 
         private static void Report(TransferService.Result result, string verb)
         {

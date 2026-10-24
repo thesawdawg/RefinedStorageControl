@@ -7,6 +7,7 @@ namespace RefinedStorageControl.Game
     {
         public void InitMod(Mod mod)
         {
+            ModEvents.GameStartDone.RegisterHandler(OnGameStartDone);
             ModEvents.WorldShuttingDown.RegisterHandler(OnWorldShuttingDown);
             try
             {
@@ -20,6 +21,11 @@ namespace RefinedStorageControl.Game
             RscLog.Out("Refined Storage Control "
                 + typeof(RscMod).Assembly.GetName().Version
                 + " initialized");
+        }
+
+        private static void OnGameStartDone(ref ModEvents.SGameStartDoneData data)
+        {
+            Persistence.NodeConfigFile.Load();
         }
 
         private static void OnWorldShuttingDown(ref ModEvents.SWorldShuttingDownData data)

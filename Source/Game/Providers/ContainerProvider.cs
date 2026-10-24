@@ -25,6 +25,10 @@ namespace RefinedStorageControl.Game.Providers
         public long SortKey { get; }
         public ItemStackGrid Grid => Storage.itemGrid;
 
+        // The interface whose priority and filter apply; set when the network
+        // collects its providers.
+        public NodeId? Interface { get; set; }
+
         // Resolves child blocks of multi-block containers to their parent.
         public static bool TryResolve(World world, Vector3i pos, out ContainerProvider provider, out string reason)
         {
