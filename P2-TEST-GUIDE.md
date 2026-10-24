@@ -10,7 +10,7 @@ Build `4aee7fa` or later, installed in `Mods/RefinedStorageControl_Dev`. Restart
 
 ## Test 1: Cabinet window and ownership
 
-1. Look at a cabinet: the prompt says "E Open RSC Drive Cabinet (dev)". Press E.
+1. Look at a cabinet: the prompt says "E Open Drive Cabinet". Press E.
 2. Click slot 1, then click a **1k disk** in your backpack. Expect it in slot 1 and "Owner: <you>, Your access: owner".
 3. Insert the second 1k disk and the 10k disk; check slot info (used / capacity).
 4. Select a disk and **Take disk out**: it returns to your backpack. Put it back.

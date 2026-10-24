@@ -1,12 +1,12 @@
 Key,File,Type,UsedInMainMenu,NoTranslate,english
-rscProtoControllerSimple,blocks,Block,,,RSC Controller (Simple - dev)
-rscProtoControllerAdvanced,blocks,Block,,,RSC Controller (Advanced - dev)
-rscProtoHub,blocks,Block,,,RSC Hub (dev)
-rscProtoInterface,blocks,Block,,,RSC Interface (dev)
+rscControllerSimple,blocks,Block,,,Storage Controller
+rscControllerAdvanced,blocks,Block,,,Advanced Storage Controller
+rscHub,blocks,Block,,,Storage Relay
+rscInterface,blocks,Block,,,Storage Interface
 rscWireConflict,ui,UI,,,Would join two storage controllers
 rscWireVanillaParent,ui,UI,,,Only a storage controller can connect to power. Wire power to the controller and wire other storage blocks from the controller or a hub.
 rscWireVanillaChild,ui,UI,,,Storage blocks cannot power other devices. Wire them from a relay or generator instead.
-rscProtoTerminal,blocks,Block,,,RSC Terminal (dev)
+rscTerminal,blocks,Block,,,Storage Terminal
 blockcommand_rsc_open,UI,UI,,,Open
 rscPromptTerminal,UI,UI,,,{0} Open {1}
 rscPromptInterface,UI,UI,,,{0} Configure {1}
@@ -20,13 +20,13 @@ rscPriorityHint,UI,UI,,,Lower numbers fill first; higher numbers are emptied fir
 rscFilter,UI,UI,,,Filter
 rscAddHeld,UI,UI,,,Add held item
 rscClearFilter,UI,UI,,,Clear filter
-rscProtoDriveCabinet,blocks,Block,,,RSC Drive Cabinet (dev)
-rscDisk1k,items,Item,,,Storage Disk 1k
-rscDisk10k,items,Item,,,Storage Disk 10k
-rscDisk100k,items,Item,,,Storage Disk 100k
-rscDisk250k,items,Item,,,Storage Disk 250k
-rscDisk500k,items,Item,,,Storage Disk 500k
-rscDisk1m,items,Item,,,Storage Disk 1m
+rscDriveCabinet,blocks,Block,,,Drive Cabinet
+rscDisk1k,items,Item,,,1K Storage Disk
+rscDisk10k,items,Item,,,10K Storage Disk
+rscDisk100k,items,Item,,,100K Storage Disk
+rscDisk250k,items,Item,,,250K Storage Disk
+rscDisk500k,items,Item,,,500K Storage Disk
+rscDisk1m,items,Item,,,1M Storage Disk
 rscDiskDesc,items,Item,,,"Digital storage for a drive cabinet on a powered storage network. The disk keeps its contents when removed but only works in the world it was first used in."
 rscCabinetTitle,UI,UI,,,Drive Cabinet
 rscRemoveDisk,UI,UI,,,Take disk out
@@ -50,3 +50,9 @@ rscCraft,UI,UI,,,Craft
 rscCraftMax,UI,UI,,,Max
 rscCraftCancel,UI,UI,,,Cancel
 rscCraftPick,UI,UI,,,Pick a recipe. Ingredients come from your storage (the forge uses its own materials).
+rscControllerSimpleDesc,blocks,Block,,,"Heart of a storage network. Needs no power; moves 2 stacks per second. One per network."
+rscControllerAdvancedDesc,blocks,Block,,,"Powered heart of a storage network. Moves items quickly and runs drive cabinets. One per network."
+rscHubDesc,blocks,Block,,,"Branches a storage network's wiring. Uses no power."
+rscInterfaceDesc,blocks,Block,,,"Connects the containers and crafting stations touching it to the network. Set its priority and filter with E."
+rscTerminalDesc,blocks,Block,,,"Browse, store, take and craft with everything on the network."
+rscDriveCabinetDesc,blocks,Block,,,"Holds up to six storage disks on a powered network. Destroying it can lose disks."

@@ -4,33 +4,33 @@
        controllers additionally need Advanced Engineering rank 2 / 5 (PROG-01/02).
        Amounts are first-pass balance, configurable here. -->
   <append xpath="/recipes">
-    <recipe name="rscProtoHub" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
+    <recipe name="rscHub" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
       <ingredient name="resourceForgedIron" count="2" />
       <ingredient name="resourceElectricParts" count="1" />
     </recipe>
-    <recipe name="rscProtoInterface" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
+    <recipe name="rscInterface" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
       <ingredient name="resourceForgedIron" count="4" />
       <ingredient name="resourceElectricParts" count="3" />
       <ingredient name="resourceScrapPolymers" count="2" />
     </recipe>
-    <recipe name="rscProtoTerminal" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
+    <recipe name="rscTerminal" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
       <ingredient name="resourceForgedIron" count="6" />
       <ingredient name="resourceElectricParts" count="8" />
       <ingredient name="resourceScrapPolymers" count="4" />
       <ingredient name="resourceMechanicalParts" count="2" />
     </recipe>
-    <recipe name="rscProtoControllerSimple" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
+    <recipe name="rscControllerSimple" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
       <ingredient name="resourceForgedIron" count="10" />
       <ingredient name="resourceElectricParts" count="6" />
       <ingredient name="resourceMechanicalParts" count="4" />
     </recipe>
-    <recipe name="rscProtoControllerAdvanced" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
+    <recipe name="rscControllerAdvanced" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
       <ingredient name="resourceForgedSteel" count="10" />
       <ingredient name="resourceElectricParts" count="15" />
       <ingredient name="resourceMechanicalParts" count="6" />
       <ingredient name="resourceScrapPolymers" count="6" />
     </recipe>
-    <recipe name="rscProtoDriveCabinet" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
+    <recipe name="rscDriveCabinet" count="1" craft_area="workbench" tags="perkAdvancedEngineering,learnable">
       <ingredient name="resourceForgedSteel" count="8" />
       <ingredient name="resourceElectricParts" count="10" />
       <ingredient name="resourceMechanicalParts" count="4" />
