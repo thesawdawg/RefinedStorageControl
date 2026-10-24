@@ -36,3 +36,5 @@ rscMakeOwner,UI,UI,,,Make owner
 rscAddPlayer,UI,UI,,,Add player
 rscAdd,UI,UI,,,Add
 rscBackpackDisks,UI,UI,,,Backpack (click a disk to insert it)
+rscCabinetSettings,UI,UI,,,Priority and filter
+rscCabinetSettingsTitle,UI,UI,,,Drive Cabinet Settings

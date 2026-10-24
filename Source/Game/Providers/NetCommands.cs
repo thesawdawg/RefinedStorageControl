@@ -173,9 +173,10 @@ namespace RefinedStorageControl.Game.Providers
         private static bool IsInterface(Vector3i pos)
         {
             var block = GameManager.Instance.World.GetBlock(pos).Block;
-            if (Topology.RscBlocks.TryGetRole(block, out var kind, out _) && kind == Core.NodeKind.Interface)
+            if (Topology.RscBlocks.TryGetRole(block, out var kind, out _)
+                && (kind == Core.NodeKind.Interface || kind == Core.NodeKind.DriveCabinet))
                 return true;
-            Say("rejected: no storage interface at " + pos);
+            Say("rejected: no storage interface or drive cabinet at " + pos);
             return false;
         }
 

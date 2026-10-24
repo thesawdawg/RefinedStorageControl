@@ -69,6 +69,7 @@ namespace RefinedStorageControl.Game.UI
                 if (c != null)
                     Guard(() => _backend.SetPermissions(_selected, c.Id, DigitalAcl.DefaultGrant));
             });
+            Button("btnSettings", () => XUiC_RscInterface.Open(Player, _pendingPos));
             Button("btnBagPrev", () => { _bagPage = Math.Max(0, _bagPage - 1); ShowBag(); });
             Button("btnBagNext", () =>
             {

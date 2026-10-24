@@ -26,6 +26,33 @@ namespace RefinedStorageControl.Game
             }
         }
 
+        // Rebuilds the exact item a key was made from (disk withdrawals: a disk
+        // stores only keys). Cached per key; callers get their own clone.
+        public static ItemValue ToItemValue(ItemKey key)
+        {
+            if (!Rebuilt.TryGetValue(key, out var item))
+            {
+                var reader = MemoryPools.poolBinaryReader.AllocSync(_bReset: false);
+                try
+                {
+                    reader.SetBaseStream(new MemoryStream(key.ToArray()));
+                    item = new ItemValue();
+                    item.Read(reader);
+                }
+                finally
+                {
+                    MemoryPools.poolBinaryReader.FreeSync(reader);
+                }
+                if (Rebuilt.Count > 4096)
+                    Rebuilt.Clear();
+                Rebuilt[key] = item;
+            }
+            return item.Clone();
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<ItemKey, ItemValue> Rebuilt =
+            new System.Collections.Generic.Dictionary<ItemKey, ItemValue>();
+
         public static string HexPrefix(ItemKey key)
         {
             byte[] bytes = key.ToArray();

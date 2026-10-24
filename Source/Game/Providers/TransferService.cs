@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace RefinedStorageControl.Game.Providers
 {
-    // Host-authoritative transfers between network storage and an endpoint
-    // container. Every call runs on the main thread and validates, plans and
+    // Host-authoritative transfers between network storage (containers and, on
+    // a powered advanced network, installed disks) and an endpoint grid. Every call runs on the main thread and validates, plans and
     // applies in one step, so no client upload can interleave (A01). The order is:
     // network connected (NET-05) and powered (PWR-02) -> endpoint access/in-use ->
     // budget -> per-provider access/in-use -> exact-key planning -> apply.
@@ -50,7 +50,7 @@ namespace RefinedStorageControl.Game.Providers
         {
             public NodeId Controller;
             public ControllerTier Tier;
-            public List<ContainerProvider> Providers;
+            public List<StorageProvider> Providers;
         }
 
         private static readonly Dictionary<NodeId, TransferBudget> Budgets = new Dictionary<NodeId, TransferBudget>();
@@ -67,23 +67,8 @@ namespace RefinedStorageControl.Game.Providers
                 return false;
             var byKey = new Dictionary<ItemKey, Entry>();
             foreach (var p in net.Providers)
-            {
-                if (!p.CanAccess(user))
-                    continue;
-                var seen = new HashSet<ItemKey>();
-                for (int i = 0; i < p.Grid.Length; i++)
-                {
-                    var stack = p.Grid[i];
-                    if (GridEndpoint.IsEmpty(stack))
-                        continue;
-                    var key = ItemKeys.FromItemValue(stack.itemValue);
-                    if (!byKey.TryGetValue(key, out var e))
-                        byKey[key] = e = new Entry { Key = key, Sample = stack.itemValue.Clone() };
-                    e.Count += stack.count;
-                    if (seen.Add(key))
-                        e.Providers++;
-                }
-            }
+                if (p.CanView(user))
+                    p.AddEntries(byKey);
             entries = new List<Entry>(byKey.Values);
             entries.Sort((a, b) =>
             {
@@ -137,35 +122,20 @@ namespace RefinedStorageControl.Game.Providers
             var key = ItemKeys.FromItemValue(item);
             string itemName = Name(item);
             int maxCount = item.ItemClass?.MaxCount ?? count;
-            var candidates = Eligible(net, user, exclude, key, holdsCheck: true, out var infos);
+            var candidates = Eligible(net, exclude, p => p.CanDeposit(user), key, holdsCheck: true, out var infos);
             if (candidates.Count == 0)
-                return Result.Fail("no accessible storage on the network");
+                return Result.Fail("no storage on the network accepts your items");
 
             int remaining = count;
-            var plans = new List<(ContainerProvider provider, List<StackPlacement.Placement> adds)>();
+            var plans = new List<StorageProvider>();
             foreach (int i in ProviderRouting.DepositOrder(infos, itemName))
             {
-                // A stack can exceed one slot's room after top-ups, so keep
-                // planning on the same provider until it stops accepting.
-                var provider = candidates[i];
-                var slots = provider.PlacementSlots();
-                var adds = new List<StackPlacement.Placement>();
-                while (remaining > 0)
+                int accepted = candidates[i].PlanDeposit(key, remaining, maxCount);
+                if (accepted > 0)
                 {
-                    int before = remaining;
-                    var step = new List<StackPlacement.Placement>();
-                    remaining = StackPlacement.Plan(key, remaining, maxCount, slots, step);
-                    if (remaining == before)
-                        break;
-                    foreach (var p in step)
-                    {
-                        adds.Add(p);
-                        var s = slots[p.Index];
-                        slots[p.Index] = new StackPlacement.Slot(key, s.Count + p.Added, maxCount, s.Locked);
-                    }
+                    plans.Add(candidates[i]);
+                    remaining -= accepted;
                 }
-                if (adds.Count > 0)
-                    plans.Add((provider, adds));
                 if (remaining == 0)
                     break;
             }
@@ -174,9 +144,9 @@ namespace RefinedStorageControl.Game.Providers
                 return Result.Fail("no room on the network for '" + itemName + "'");
 
             var clone = item.Clone();
-            foreach (var (provider, adds) in plans)
+            foreach (var provider in plans)
             {
-                provider.Apply(adds, clone);
+                provider.CommitDeposit(clone);
                 provider.MarkModified();
             }
             budget.TryConsume(Now);
@@ -233,45 +203,40 @@ namespace RefinedStorageControl.Game.Providers
             if (allowance <= 0)
                 return Result.Budget(BudgetReason(budget));
 
-            var candidates = Eligible(net, user, exclude, key, holdsCheck: false, out var infos);
+            var candidates = Eligible(net, exclude, p => p.CanWithdraw(user), key, holdsCheck: false, out var infos);
             ItemValue sample = null;
-            var sources = new List<(ContainerProvider provider, int slot, int take)>();
+            var sources = new List<(StorageProvider provider, int handle, int take)>();
             int wanted = count;
             int fit = 0;
             int moved = 0;
             foreach (int i in ProviderRouting.WithdrawOrder(infos))
             {
                 var p = candidates[i];
-                for (int s = 0; s < p.Grid.Length; s++)
+                foreach (var (handle, available) in p.Sources(key))
                 {
                     if (sources.Count >= allowance || (sample != null && moved >= fit))
                         break;
-                    if (p.SlotLocked(s))
-                        continue;
-                    var k = p.KeyAt(s);
-                    if (!k.HasValue || !k.Value.Equals(key))
-                        continue;
                     if (sample == null)
                     {
-                        sample = p.Grid[s].itemValue.Clone();
-                        int maxCount = sample.ItemClass?.MaxCount ?? p.Grid[s].count;
+                        sample = p.SampleAt(handle, key);
+                        int maxCount = sample.ItemClass?.MaxCount ?? available;
                         wanted = Math.Min(wanted, maxCount);
                         fit = roomFor(sample, maxCount, wanted);
                         if (fit <= 0)
                             return Result.Fail("destination has no room");
                     }
-                    int take = Math.Min(p.Grid[s].count, fit - moved);
-                    sources.Add((p, s, take));
+                    int take = Math.Min(available, fit - moved);
+                    sources.Add((p, handle, take));
                     moved += take;
                 }
             }
             if (sample == null)
                 return Result.Fail("item not available on the network");
 
-            var touched = new HashSet<ContainerProvider>();
+            var touched = new HashSet<StorageProvider>();
             foreach (var src in sources)
             {
-                src.provider.Take(src.slot, src.take);
+                src.provider.Take(src.handle, key, src.take);
                 touched.Add(src.provider);
             }
             foreach (var provider in touched)
@@ -330,28 +295,40 @@ namespace RefinedStorageControl.Game.Providers
                     return false;
                 }
             }
-            net = new Network { Controller = controller, Tier = tier, Providers = CollectProviders(world, registry, controller) };
+            net = new Network { Controller = controller, Tier = tier, Providers = CollectProviders(world, registry, controller, tier) };
             reason = null;
             return true;
         }
 
-        // Containers in the six blocks around each interface, deduplicated. A
+        // Containers in the six blocks around each interface, deduplicated (a
         // container touching several interfaces takes its settings from the first
-        // in fixed position order (Members is sorted).
-        public static List<ContainerProvider> CollectProviders(World world, NetworkRegistry registry, NodeId controller)
+        // in fixed position order; Members is sorted), plus every installed disk
+        // when the network is advanced (PROG-05: disks need the powered tier;
+        // power itself was checked in TryResolveNetwork).
+        private static List<StorageProvider> CollectProviders(World world, NetworkRegistry registry, NodeId controller,
+            ControllerTier tier)
         {
-            var providers = new List<ContainerProvider>();
+            var providers = new List<StorageProvider>();
             var seen = new HashSet<Vector3i>();
+            var store = Persistence.DiskFile.Store;
             foreach (var member in registry.Members(controller))
             {
-                if (registry.KindOf(member) != NodeKind.Interface)
-                    continue;
-                foreach (var provider in ContainersAround(world, RscBlocks.FromNodeId(member)))
+                var kind = registry.KindOf(member);
+                if (kind == NodeKind.Interface)
                 {
-                    if (!seen.Add(provider.Position))
-                        continue;
-                    provider.Interface = member;
-                    providers.Add(provider);
+                    foreach (var container in ContainersAround(world, RscBlocks.FromNodeId(member)))
+                        if (seen.Add(container.Position))
+                            providers.Add(new ContainerStorage(container, member));
+                }
+                else if (kind == NodeKind.DriveCabinet && tier == ControllerTier.Advanced && store != null)
+                {
+                    var slots = store.Slots(member.Value);
+                    for (int i = 0; i < slots.Length; i++)
+                    {
+                        var disk = slots[i].HasValue ? store.Get(slots[i].Value) : null;
+                        if (disk != null)
+                            providers.Add(new DiskStorage(store, disk, member, i));
+                    }
                 }
             }
             return providers;
@@ -378,19 +355,19 @@ namespace RefinedStorageControl.Game.Providers
             new Vector3i(0, -1, 0), new Vector3i(0, 0, 1), new Vector3i(0, 0, -1)
         };
 
-        // Priority and filter come from the serving interface's saved settings.
-        private static List<ContainerProvider> Eligible(Network net, PlatformUserIdentifierAbs user, ItemStackGrid exclude,
+        // Priority and filter come from the serving interface's or cabinet's settings.
+        private static List<StorageProvider> Eligible(Network net, ItemStackGrid exclude, Func<StorageProvider, bool> allowed,
             ItemKey key, bool holdsCheck, out List<ProviderInfo> infos)
         {
-            var eligible = new List<ContainerProvider>();
+            var eligible = new List<StorageProvider>();
             infos = new List<ProviderInfo>();
             foreach (var p in net.Providers)
             {
-                if (ReferenceEquals(p.Grid, exclude) || !p.CanAccess(user) || p.InUse)
+                if ((exclude != null && ReferenceEquals(p.Grid, exclude)) || p.InUse || !allowed(p))
                     continue;
                 eligible.Add(p);
-                var config = p.Interface.HasValue
-                    ? Persistence.NodeConfigFile.Store.Get(p.Interface.Value.Value)
+                var config = p.ConfigNode.HasValue
+                    ? Persistence.NodeConfigFile.Store.Get(p.ConfigNode.Value.Value)
                     : NodeConfig.Default;
                 infos.Add(new ProviderInfo(p.SortKey, config.Priority, config.Filter, holdsCheck && p.Holds(key)));
             }

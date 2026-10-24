@@ -62,6 +62,10 @@ namespace RefinedStorageControl.Game.UI
 
         private NodeConfig Config => _backend?.Config ?? NodeConfig.Default;
 
+        private bool IsCabinet =>
+            Topology.RscBlocks.TryGetRole(GameManager.Instance.World?.GetBlock(_pendingPos).Block, out var kind, out _)
+            && kind == Core.NodeKind.DriveCabinet;
+
         private void AddPriority(int delta)
         {
             int priority = Math.Max(ProviderRouting.MinPriority, Math.Min(ProviderRouting.MaxPriority, Config.Priority + delta));
@@ -109,7 +113,7 @@ namespace RefinedStorageControl.Game.UI
             switch (bindingName)
             {
                 case "title":
-                    value = Localization.Get("rscInterfaceTitle");
+                    value = Localization.Get(IsCabinet ? "rscCabinetSettingsTitle" : "rscInterfaceTitle");
                     return true;
                 case "priority":
                     value = Config.Priority.ToString();
@@ -125,6 +129,11 @@ namespace RefinedStorageControl.Game.UI
                     value = names.Count == 0 ? "(none)" : string.Join(", ", names);
                     return true;
                 case "containers":
+                    if (IsCabinet)
+                    {
+                        value = _backend?.Error ?? "Drive cabinet: these settings apply to all of its disks";
+                        return true;
+                    }
                     int count = _backend?.Containers ?? 0;
                     value = _backend?.Error ?? (count == 0 ? "No player-placed container is touching this interface"
                         : "Serves " + count + " container" + (count == 1 ? "" : "s"));

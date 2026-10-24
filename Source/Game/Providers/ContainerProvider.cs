@@ -23,10 +23,6 @@ namespace RefinedStorageControl.Game.Providers
         public override ItemStackGrid Grid => Storage.itemGrid;
         public override string Label => "container at " + Position;
 
-        // The interface whose priority and filter apply; set when the network
-        // collects its providers.
-        public NodeId? Interface { get; set; }
-
         // Resolves child blocks of multi-block containers to their parent.
         public static bool TryResolve(World world, Vector3i pos, out ContainerProvider provider, out string reason)
         {

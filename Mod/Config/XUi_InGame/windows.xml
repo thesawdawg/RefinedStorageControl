@@ -127,6 +127,7 @@
         <label depth="3" pos="12,-74" width="596" height="50" font_size="20" text="{slotinfo}" />
 
         <label depth="3" pos="12,-130" width="300" height="26" font_size="24" text_key="rscAccess" />
+        <simplebutton name="btnSettings" depth="3" pos="384,-142" width="220" height="30" font_size="20" caption_key="rscCabinetSettings" />
         <rect name="entryRow" pos="8,-160" height="32" depth="3">
           <simplebutton name="btnEntryPrev" depth="3" pos="0,-16" width="40" height="30" font_size="24" caption="&lt;" visible="{canconfigure}" />
           <label depth="3" pos="48,-3" width="508" height="26" font_size="22" justify="center" text="{entryline}" />

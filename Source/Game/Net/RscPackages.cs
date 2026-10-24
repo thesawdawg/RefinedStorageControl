@@ -23,8 +23,12 @@ namespace RefinedStorageControl.Game.Net
     {
         private const float MaxReach = 8f;
 
-        public static bool TryAuthorize(ClientInfo sender, Vector3i pos, NodeKind kind, out PlatformUserIdentifierAbs user, out string reason)
+        public static bool TryAuthorize(ClientInfo sender, Vector3i pos, NodeKind kind, out PlatformUserIdentifierAbs user, out string reason) =>
+            TryAuthorize(sender, pos, new[] { kind }, out user, out reason);
+
+        public static bool TryAuthorize(ClientInfo sender, Vector3i pos, NodeKind[] kinds, out PlatformUserIdentifierAbs user, out string reason)
         {
+            var kind = kinds[0];
             user = sender?.InternalId;
             var world = GameManager.Instance.World;
             if (world == null || sender == null || user == null)
@@ -42,7 +46,7 @@ namespace RefinedStorageControl.Game.Net
                 reason = "too far from the " + (kind == NodeKind.Terminal ? "terminal" : "interface");
                 return false;
             }
-            if (!RscBlocks.TryGetRole(world.GetBlock(pos).Block, out var actual, out _) || actual != kind)
+            if (!RscBlocks.TryGetRole(world.GetBlock(pos).Block, out var actual, out _) || System.Array.IndexOf(kinds, actual) < 0)
             {
                 reason = "the block is gone";
                 return false;
@@ -376,7 +380,8 @@ namespace RefinedStorageControl.Game.Net
         {
             if (!ConnectionManager.Instance.IsServer)
                 return;
-            if (!RemoteGuard.TryAuthorize(Sender, _pos, NodeKind.Interface, out _, out string reason))
+            // Interfaces and drive cabinets share these settings (priority and filter).
+            if (!RemoteGuard.TryAuthorize(Sender, _pos, new[] { NodeKind.Interface, NodeKind.DriveCabinet }, out _, out string reason))
             {
                 Sender.SendPackage(NetPackageManager.GetPackage<NetPackageRscInterfaceState>().Setup(_pos, null, 0, reason));
                 return;
