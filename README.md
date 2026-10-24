@@ -71,6 +71,7 @@ Remove `Mods/RefinedStorageControl`. Worlds that used the mod lose its blocks an
 
 ## Planning documents
 
+- [Developer guide](DEVELOPMENT.md): status, setup on a new machine, build, art pipeline, gotchas.
 - [Specification](SPECS.md): requirements, release boundaries, acceptance scenarios and open decisions.
 - [Overview TODO](TODO.md): milestone checklist.
 - [Design and decision record](RefinedStorage-Design.md): the source of truth for decisions.
