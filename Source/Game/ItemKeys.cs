@@ -7,9 +7,18 @@ namespace RefinedStorageControl.Game
     {
         // Exact serialized item state (DISK-03): ItemValue.Write covers type,
         // quality, durability, modifications, cosmetic mods, metadata, seed and
-        // texture. Two stacks merge only when every byte matches.
+        // texture. Two stacks merge only when every byte matches. The seed is
+        // stamped from the clock whenever an item is created, and the game
+        // ignores it when stacking, so stackable items are keyed with seed 0;
+        // otherwise every crafted or looted batch would be a separate entry.
+        // Unstackable items (quality gear) keep their seed as part of identity.
         public static ItemKey FromItemValue(ItemValue value)
         {
+            if (value.Seed != 0 && value.ItemClass?.CanStack() == true)
+            {
+                value = value.Clone();
+                value.Seed = 0;
+            }
             var stream = MemoryPools.poolMemoryStream.AllocSync(_bReset: true);
             try
             {
